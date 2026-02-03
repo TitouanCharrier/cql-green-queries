@@ -1,5 +1,6 @@
 > [!WARNING]  
 > Edit Licence to follow the GSF way of doing things.
+> Edit Code of conduct to add the mean of contact in case of problem.
 
 # Green Code Scan Rules
 
