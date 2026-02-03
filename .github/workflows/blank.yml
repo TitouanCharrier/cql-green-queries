@@ -1,0 +1,74 @@
+name: Publish All CodeQL Packs
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'codeql-custom-queries-*/**'
+
+jobs:
+  publish-packs:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      packages: write
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.PACK_PUBLISH_TOKEN }}
+
+      - name: Install CodeQL CLI
+        uses: github/codeql-action/setup-codeql@v3
+
+      - name: Process and Publish Packs
+        env:
+          GITHUB_TOKEN: ${{ secrets.PACK_PUBLISH_TOKEN }}
+        run: |
+          # Configuration de l'identité Git
+          git config --local user.email "github-actions[bot]@users.noreply.github.com"
+          git config --local user.name "github-actions[bot]"
+
+          # Liste des répertoires de packs
+          PACK_DIRS=$(find . -maxdepth 1 -type d -name "codeql-custom-queries-*")
+
+          for dir in $PACK_DIRS; do
+            echo "Traitement du pack dans : $dir"
+            
+            # Vérification de l'existence du fichier qlpack.yml (gestion des extensions)
+            if [ -f "$dir/qlpack.yml" ]; then
+              PACK_FILE="$dir/qlpack.yml"
+            elif [ -f "$dir/codeql-pack.yml" ]; then
+              PACK_FILE="$dir/codeql-pack.yml"
+            else
+              echo "Aucun fichier qlpack.yml trouvé dans $dir, passage au suivant."
+              continue
+            fi
+
+            # 1. Incrémentation de la version
+            VERSION=$(grep '^version:' "$PACK_FILE" | awk '{print $2}')
+            BASE_VERSION=$(echo $VERSION | cut -d. -f1-2)
+            PATCH=$(echo $VERSION | cut -d. -f3)
+            NEW_VERSION="$BASE_VERSION.$((PATCH + 1))"
+            sed -i "s/^version: .*/version: $NEW_VERSION/" "$PACK_FILE"
+            
+            # 2. Installation et Publication
+            cd "$dir"
+            codeql pack install
+            codeql pack publish
+            cd ..
+            
+            # 3. Préparation du commit
+            git add "$PACK_FILE"
+            if [ -f "$dir/codeql-pack.lock.yml" ]; then
+                git add "$dir/codeql-pack.lock.yml"
+            fi
+          done
+
+          # 4. Push des changements de versions (si modifiés)
+          if ! git diff --cached --exit-code; then
+            git commit -m "chore: bump packs versions [skip ci]"
+            git push
+          fi
