@@ -1,5 +1,5 @@
 
-public class NestedIfTest {
+public class ExampleTest {
 
     public void validate(int x, int y) {
         // Cas positif : détecté par la requête
