@@ -13,7 +13,7 @@ Ensure your pull request adheres to the following guidelines:
 - Additions should be added in alphabetical order in the relevant category.
 - Use [title casing (AP Stylebook)](https://en.wikipedia.org/wiki/Title_case#AP_Stylebook) in the following format: `[List Name](link)`.
 - Search previous suggestions to make sure your suggestion isn't a duplicate.
-- Ensure your commit are following the [Convetional Commit](https://www.conventionalcommits.org/en/v1.0.0/), for better readability.
+- Ensure your commit are following the [Conventional Commit](https://www.conventionalcommits.org/en/v1.0.0/), for better readability.
 
 Thank you for your suggestions and/or contributions!
 
