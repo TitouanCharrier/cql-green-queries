@@ -1,12 +1,10 @@
 name: Publish Changed CodeQL Packs
-
 on:
   push:
     branches:
       - main
     paths:
       - 'codeql-custom-queries-*/**'
-
 jobs:
   publish-packs:
     runs-on: ubuntu-latest
@@ -14,32 +12,31 @@ jobs:
       contents: write
       packages: write
       security-events: read
-
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
         with:
           token: ${{ secrets.PACK_PUBLISH_TOKEN }}
           fetch-depth: 2
-
       - name: Install CodeQL CLI
         uses: github/codeql-action/setup-codeql@v4
-
       - name: Process and Publish Packs
         env:
           GITHUB_TOKEN: ${{ secrets.PACK_PUBLISH_TOKEN }}
         run: |
-          # Ajout du binaire CodeQL au PATH
-          export PATH="$CODEQL_DIST:$PATH"
-
+          # Add CodeQL to PATH - the binary is in a subdirectory
+          export PATH="$RUNNER_TOOL_CACHE/CodeQL/$(ls $RUNNER_TOOL_CACHE/CodeQL)/x64/codeql:$PATH"
+          
           git config --local user.email "github-actions[bot]@users.noreply.github.com"
           git config --local user.name "github-actions[bot]"
           
-          # Utilisation de find pour lister les répertoires
+          # Verify CodeQL is accessible
+          codeql version
+          
+          # Find all pack directories
           PACK_DIRS=$(find . -maxdepth 1 -type d -name "codeql-custom-queries-*")
           
           for dir in $PACK_DIRS; do
-            # Nettoyage du nom du répertoire pour éviter le préfixe ./
             DIR_CLEAN=$(basename "$dir")
             
             if ! git diff --quiet HEAD^ HEAD -- "$DIR_CLEAN"; then
@@ -50,17 +47,20 @@ jobs:
               elif [ -f "$DIR_CLEAN/codeql-pack.yml" ]; then
                 PACK_FILE="$DIR_CLEAN/codeql-pack.yml"
               else
+                echo "Aucun fichier de pack trouvé dans $DIR_CLEAN, passage au suivant."
                 continue
               fi
-
-              # Incrémentation de la version
+              
+              # Increment version
               VERSION=$(grep '^version:' "$PACK_FILE" | awk '{print $2}')
               BASE_VERSION=$(echo $VERSION | cut -d. -f1-2)
               PATCH=$(echo $VERSION | cut -d. -f3)
               NEW_VERSION="$BASE_VERSION.$((PATCH + 1))"
               sed -i "s/^version: .*/version: $NEW_VERSION/" "$PACK_FILE"
               
-              # Installation et Publication
+              echo "Version mise à jour : $VERSION -> $NEW_VERSION"
+              
+              # Install and publish
               cd "$DIR_CLEAN"
               codeql pack install
               codeql pack publish
@@ -70,7 +70,7 @@ jobs:
               [ -f "$DIR_CLEAN/codeql-pack.lock.yml" ] && git add "$DIR_CLEAN/codeql-pack.lock.yml"
             fi
           done
-
+          
           if ! git diff --cached --quiet; then
             git commit -m "chore: bump modified packs versions [skip ci]"
             git push
