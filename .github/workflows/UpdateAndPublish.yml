@@ -28,8 +28,20 @@ jobs:
         run: |
           cd codeql-custom-queries-java
           
+          # Déterminer le fichier de pack (qlpack.yml ou codeql-pack.yml)
+          if [ -f "qlpack.yml" ]; then
+            PACK_FILE="qlpack.yml"
+          elif [ -f "codeql-pack.yml" ]; then
+            PACK_FILE="codeql-pack.yml"
+          else
+            echo "Erreur: Aucun fichier qlpack.yml ou codeql-pack.yml trouvé"
+            exit 1
+          fi
+          
+          echo "Fichier de pack trouvé: $PACK_FILE"
+          
           # Lire la version actuelle
-          CURRENT_VERSION=$(grep '^version:' codeql-paack.yml | awk '{print $2}')
+          CURRENT_VERSION=$(grep '^version:' "$PACK_FILE" | awk '{print $2}')
           echo "Version actuelle: $CURRENT_VERSION"
           
           # Incrémenter la version (patch +1)
@@ -39,8 +51,12 @@ jobs:
           NEW_VERSION="$MAJOR.$MINOR.$((PATCH + 1))"
           echo "Nouvelle version: $NEW_VERSION"
           
-          # Mettre à jour le codeql-pack.yml
-          sed -i "s/^version: .*/version: $NEW_VERSION/" codeql-pack.yml
+          # Mettre à jour le fichier de pack
+          sed -i "s/^version: .*/version: $NEW_VERSION/" "$PACK_FILE"
+          
+          # Vérifier que CodeQL est accessible
+          which codeql || export PATH="$RUNNER_TOOL_CACHE/CodeQL/$(ls $RUNNER_TOOL_CACHE/CodeQL)/x64/codeql:$PATH"
+          codeql version
           
           # Installer et publier
           codeql pack install
@@ -50,6 +66,6 @@ jobs:
         run: |
           git config --local user.email "github-actions[bot]@users.noreply.github.com"
           git config --local user.name "github-actions[bot]"
-          git add codeql-custom-queries-java/codeql-pack.yml
+          git add codeql-custom-queries-java/
           git diff --staged --quiet || git commit -m "chore: bump java pack version [skip ci]"
           git push
