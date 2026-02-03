@@ -26,8 +26,10 @@ jobs:
 
     - name: Install CodeQL CLI Dependencies
       run: |
+        # On utilise find pour localiser le binaire codeql au cas où setup-codeql ne l'ajoute pas au PATH
+        CODEQL_BIN=$(which codeql || find $RUNNER_TOOL_CACHE/CodeQL -name codeql -type f | head -n 1)
         cd codeql-custom-queries-python
-        codeql pack install
+        $CODEQL_BIN pack install
 
     - name: Initialize CodeQL
       uses: github/codeql-action/init@v3
