@@ -12,7 +12,7 @@ jobs:
     name: Analyze Test Code
     runs-on: ubuntu-latest
     permissions:
-      actions: read
+      actions: write
       contents: read
       security-events: write
 
@@ -22,7 +22,6 @@ jobs:
         include:
           - test_dir: 'codeql-custom-queries-java-test'
             language: 'java'
-            # On pointe vers le dossier local contenant le qlpack.yml
             local_queries: './codeql-custom-queries-java'
 
     steps:
@@ -33,7 +32,6 @@ jobs:
       uses: github/codeql-action/init@v3
       with:
         languages: ${{ matrix.language }}
-        # Suppression de 'packs'. On utilise les requêtes locales.
         queries: ${{ matrix.local_queries }}
 
     - name: Manual Build for Java
@@ -53,12 +51,11 @@ jobs:
       with:
         category: "/language:${{ matrix.language }}/dir:${{ matrix.test_dir }}"
 
-    # Déclenchement de la publication uniquement si l'analyse réussit
     - name: Trigger Publish Workflow
-      if: success()
-      run: |
-        echo "Tests réussis. Déclenchement de la publication..."
-        gh conn auth --token ${{ secrets.GITHUB_TOKEN }}
-        gh workflow run "Publish Changed CodeQL Packs"
+      # On vérifie le succès de l'analyse ET la présence du token
+      if: success() && secrets.PACK_PUBLISH_TOKEN != ''
       env:
-        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        GH_TOKEN: ${{ github.token }}
+      run: |
+        echo "Tests réussis et token présent. Déclenchement de la publication..."
+        gh workflow run "Publish Changed CodeQL Packs" --ref main
