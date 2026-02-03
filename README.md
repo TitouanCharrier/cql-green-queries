@@ -63,8 +63,8 @@ jobs:
       with:
         # It use the language you choose in the button
         languages: ${{ github.event.inputs.language || 'java' }} # change to specify your repo language
-        # It look into the folder codeql-custom-queries-<language>
-        packs: titouancharrier/cql-custom-queries-${{ github.event.inputs.language || 'java' }}
+        # It look into the folder cql-green-queries-<language>
+        packs: titouancharrier/cql-green-queries-${{ github.event.inputs.language || 'java' }}
 
     - name: Autobuild
       uses: github/codeql-action/autobuild@v3
