@@ -1,79 +1,55 @@
-name: Publish Changed CodeQL Packs
+name: Publish CodeQL Java Pack
 on:
+  workflow_dispatch:  # Bouton manuel
   push:
     branches:
       - main
     paths:
-      - 'codeql-custom-queries-*/**'
-  workflow_dispatch:
-  
+      - 'codeql-custom-queries-java/**'
+
 jobs:
-  publish-packs:
+  publish-pack:
     runs-on: ubuntu-latest
     permissions:
       contents: write
       packages: write
-      security-events: read
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
         with:
           token: ${{ secrets.PACK_PUBLISH_TOKEN }}
-          fetch-depth: 2
+          
       - name: Install CodeQL CLI
         uses: github/codeql-action/setup-codeql@v4
-      - name: Process and Publish Packs
+        
+      - name: Increment version and publish
         env:
           GITHUB_TOKEN: ${{ secrets.PACK_PUBLISH_TOKEN }}
         run: |
-          # Add CodeQL to PATH - the binary is in a subdirectory
-          export PATH="$RUNNER_TOOL_CACHE/CodeQL/$(ls $RUNNER_TOOL_CACHE/CodeQL)/x64/codeql:$PATH"
+          cd codeql-custom-queries-java
           
+          # Lire la version actuelle
+          CURRENT_VERSION=$(grep '^version:' qlpack.yml | awk '{print $2}')
+          echo "Version actuelle: $CURRENT_VERSION"
+          
+          # Incrémenter la version (patch +1)
+          MAJOR=$(echo $CURRENT_VERSION | cut -d. -f1)
+          MINOR=$(echo $CURRENT_VERSION | cut -d. -f2)
+          PATCH=$(echo $CURRENT_VERSION | cut -d. -f3)
+          NEW_VERSION="$MAJOR.$MINOR.$((PATCH + 1))"
+          echo "Nouvelle version: $NEW_VERSION"
+          
+          # Mettre à jour le qlpack.yml
+          sed -i "s/^version: .*/version: $NEW_VERSION/" qlpack.yml
+          
+          # Installer et publier
+          codeql pack install
+          codeql pack publish
+          
+      - name: Commit version update
+        run: |
           git config --local user.email "github-actions[bot]@users.noreply.github.com"
           git config --local user.name "github-actions[bot]"
-          
-          # Verify CodeQL is accessible
-          codeql version
-          
-          # Find all pack directories
-          PACK_DIRS=$(find . -maxdepth 1 -type d -name "codeql-custom-queries-*")
-          
-          for dir in $PACK_DIRS; do
-            DIR_CLEAN=$(basename "$dir")
-            
-            if ! git diff --quiet HEAD^ HEAD -- "$DIR_CLEAN"; then
-              echo "Changements détectés dans $DIR_CLEAN."
-              
-              if [ -f "$DIR_CLEAN/qlpack.yml" ]; then
-                PACK_FILE="$DIR_CLEAN/qlpack.yml"
-              elif [ -f "$DIR_CLEAN/codeql-pack.yml" ]; then
-                PACK_FILE="$DIR_CLEAN/codeql-pack.yml"
-              else
-                echo "Aucun fichier de pack trouvé dans $DIR_CLEAN, passage au suivant."
-                continue
-              fi
-              
-              # Increment version
-              VERSION=$(grep '^version:' "$PACK_FILE" | awk '{print $2}')
-              BASE_VERSION=$(echo $VERSION | cut -d. -f1-2)
-              PATCH=$(echo $VERSION | cut -d. -f3)
-              NEW_VERSION="$BASE_VERSION.$((PATCH + 1))"
-              sed -i "s/^version: .*/version: $NEW_VERSION/" "$PACK_FILE"
-              
-              echo "Version mise à jour : $VERSION -> $NEW_VERSION"
-              
-              # Install and publish
-              cd "$DIR_CLEAN"
-              codeql pack install
-              codeql pack publish
-              cd ..
-              
-              git add "$PACK_FILE"
-              [ -f "$DIR_CLEAN/codeql-pack.lock.yml" ] && git add "$DIR_CLEAN/codeql-pack.lock.yml"
-            fi
-          done
-          
-          if ! git diff --cached --quiet; then
-            git commit -m "chore: bump modified packs versions [skip ci]"
-            git push
-          fi
+          git add codeql-custom-queries-java/qlpack.yml
+          git diff --staged --quiet || git commit -m "chore: bump java pack version [skip ci]"
+          git push
