@@ -1,0 +1,5 @@
+name: TitouanCharrier/cql-green-queries-java
+version: 1.0.0
+groups: java
+dependencies:
+  codeql/java-all: "*"

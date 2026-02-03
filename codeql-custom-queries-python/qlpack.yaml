@@ -1,0 +1,5 @@
+name: TitouanCharrier/cql-green-queries-python
+version: 1.0.0
+groups: python
+dependencies:
+  codeql/python-all: "*"
