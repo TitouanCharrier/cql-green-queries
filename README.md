@@ -5,14 +5,16 @@
 # Green Code Scan Rules
 
 ---
-Build :
+Java :
 
 [![Publish CodeQL Java Pack](https://github.com/TitouanCharrier/cql-green-queries/actions/workflows/PublishJavaPack.yml/badge.svg)](https://github.com/TitouanCharrier/cql-green-queries/actions/workflows/PublishJavaPack.yml)
-
----
-Test :
-
 [![CodeQL Unitary Analysis - Java](https://github.com/TitouanCharrier/cql-green-queries/actions/workflows/RunJavaTest.yml/badge.svg)](https://github.com/TitouanCharrier/cql-green-queries/actions/workflows/RunJavaTest.yml)
+
+Python:
+
+[![Publish CodeQL Python Pack](https://github.com/TitouanCharrier/cql-green-queries/actions/workflows/Publish%20CodeQl%20Python%20Pack.yml/badge.svg)](https://github.com/TitouanCharrier/cql-green-queries/actions/workflows/Publish%20CodeQl%20Python%20Pack.yml)
+[![CodeQL Unitary Analysis - Python](https://github.com/TitouanCharrier/cql-green-queries/actions/workflows/RunPythonTest.yml/badge.svg)](https://github.com/TitouanCharrier/cql-green-queries/actions/workflows/RunPythonTest.yml)
+---
 
 This repository have rules which check if your code is eco-friendly (or not). It use CodeQL to find parts of your code that are not good for environment (useless process, memory leak,...).
 
