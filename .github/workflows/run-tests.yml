@@ -1,11 +1,7 @@
-name: "CodeQL Analysis - External Packs"
+name: "CodeQL Analysis - Manual Build"
 
 on:
   push:
-    branches: [ "main" ]
-    paths:
-      - 'codeql-custom-queries-*-test/**'
-  pull_request:
     branches: [ "main" ]
     paths:
       - 'codeql-custom-queries-*-test/**'
@@ -22,11 +18,10 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        # Liste extensible des dossiers de test et des langages associés
         include:
           - test_dir: 'codeql-custom-queries-java-test'
             language: 'java'
-            pack: 'titouancharrier/cql-green-queries-java'
+            pack: 'titouancharrier/codeql-green-queries-java'
 
     steps:
     - name: Checkout repository
@@ -36,11 +31,23 @@ jobs:
       uses: github/codeql-action/init@v3
       with:
         languages: ${{ matrix.language }}
-        # Le pack publié est récupéré ici
         packs: ${{ matrix.pack }}
 
-    - name: Autobuild
-      uses: github/codeql-action/autobuild@v3
+    # Remplacement de l'autobuild par une étape de build manuel
+    - name: Manual Build for Java
+      if: matrix.language == 'java'
+      run: |
+        echo "Compilation des fichiers Java dans ${{ matrix.test_dir }}..."
+        find ${{ matrix.test_dir }} -name "*.java" > sources.txt
+        if [ -s sources.txt ]; then
+          javac @sources.txt
+        else
+          echo "Aucun fichier Java trouvé."
+          exit 1
+        fi
+
+    # L'étape autobuild est supprimée ou désactivée pour Java
+    # Les langages interprétés (Python/JS) n'en ont pas besoin
 
     - name: Perform CodeQL Analysis
       uses: github/codeql-action/analyze@v3
