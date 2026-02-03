@@ -4,6 +4,14 @@
 
 # Green Code Scan Rules
 
+---
+Build :
+[![Publish CodeQL Java Pack](https://github.com/TitouanCharrier/cql-green-queries/actions/workflows/PublishJavaPack.yml/badge.svg)](https://github.com/TitouanCharrier/cql-green-queries/actions/workflows/PublishJavaPack.yml)
+
+---
+Test :
+[![CodeQL Unitary Analysis - Java](https://github.com/TitouanCharrier/cql-green-queries/actions/workflows/RunJavaTest.yml/badge.svg)](https://github.com/TitouanCharrier/cql-green-queries/actions/workflows/RunJavaTest.yml)
+
 This repository have rules which check if your code is eco-friendly (or not). It use CodeQL to find parts of your code that are not good for environment (useless process, memory leak,...).
 
 ## Project Map
