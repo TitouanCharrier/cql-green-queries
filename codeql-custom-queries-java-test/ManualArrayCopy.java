@@ -2,6 +2,7 @@ import java.util.Arrays;
 
 public class ManualArrayCopy {
 
+    // Should trigger 5 times
     public void testManualCopies() {
         int[] src = {1, 2, 3, 4, 5};
         int[] dest = new int[5];
@@ -28,6 +29,7 @@ public class ManualArrayCopy {
         }
     }
 
+    // should not trigger
     public void testValidCases() {
         int[] src = {1, 2, 3, 4, 5};
         int[] dest = new int[5];
