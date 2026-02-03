@@ -21,21 +21,16 @@ jobs:
     - name: Checkout repository
       uses: actions/checkout@v4
 
-    - name: Setup CodeQL
-      uses: github/codeql-action/setup-codeql@v3
-
-    - name: Install CodeQL CLI Dependencies
-      run: |
-        # On utilise find pour localiser le binaire codeql au cas où setup-codeql ne l'ajoute pas au PATH
-        CODEQL_BIN=$(which codeql || find $RUNNER_TOOL_CACHE/CodeQL -name codeql -type f | head -n 1)
-        cd codeql-custom-queries-python
-        $CODEQL_BIN pack install
-
     - name: Initialize CodeQL
       uses: github/codeql-action/init@v3
       with:
         languages: python
         queries: ./codeql-custom-queries-python
+
+    - name: Install Pack Dependencies
+      run: |
+        # L'action 'init' exporte le chemin vers le binaire dans $CODEQL_DIST
+        "$CODEQL_DIST/codeql" pack install codeql-custom-queries-python
 
     - name: Perform CodeQL Analysis
       uses: github/codeql-action/analyze@v3
