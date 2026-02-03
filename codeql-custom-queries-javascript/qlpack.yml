@@ -1,5 +1,0 @@
-name: TitouanCharrier/cql-green-queries-javascript
-version: 1.0.0
-groups: javascript
-dependencies:
-  codeql/javascript-all: "*"
