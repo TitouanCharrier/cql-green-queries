@@ -21,6 +21,9 @@ jobs:
     - name: Checkout repository
       uses: actions/checkout@v4
 
+    - name: Setup CodeQL
+      uses: github/codeql-action/setup-codeql@v3
+
     - name: Install CodeQL CLI Dependencies
       run: |
         cd codeql-custom-queries-python
