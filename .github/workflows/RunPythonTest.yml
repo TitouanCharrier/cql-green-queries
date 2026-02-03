@@ -1,0 +1,38 @@
+name: "CodeQL Unitary Analysis - Python"
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [ "main" ]
+    paths:
+      - 'codeql-custom-queries-python/**'
+      - 'codeql-custom-queries-python-test/**'
+
+jobs:
+  analyze:
+    name: Analyze Python Custom Queries
+    runs-on: ubuntu-latest
+    permissions:
+      actions: read
+      contents: read
+      security-events: write
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Install CodeQL CLI Dependencies
+      run: |
+        cd codeql-custom-queries-python
+        codeql pack install
+
+    - name: Initialize CodeQL
+      uses: github/codeql-action/init@v3
+      with:
+        languages: python
+        queries: ./codeql-custom-queries-python
+
+    - name: Perform CodeQL Analysis
+      uses: github/codeql-action/analyze@v3
+      with:
+        category: "/language:python/dir:codeql-custom-queries-python-test"
