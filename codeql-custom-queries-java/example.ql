@@ -10,6 +10,8 @@ import java
 
 from IfStmt outer, IfStmt inner
 where
+
   // L'instruction 'inner' est contenue dans la branche 'then' de 'outer'
+
   inner.getParent+() = outer.getThen()
 select inner, "Cette instruction 'if' est imbriquée dans un autre bloc 'if'."
