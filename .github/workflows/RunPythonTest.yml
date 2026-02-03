@@ -21,19 +21,22 @@ jobs:
     - name: Checkout repository
       uses: actions/checkout@v4
 
-    - name: Setup CodeQL
-      uses: github/codeql-action/setup-codeql@v3
-
-    - name: Install CodeQL CLI Dependencies
-      run: |
-        cd codeql-custom-queries-python
-        codeql pack install
-
     - name: Initialize CodeQL
       uses: github/codeql-action/init@v3
       with:
         languages: python
         queries: ./codeql-custom-queries-python
+
+    - name: Verify Python Test Files
+      run: |
+        echo "Vérification des fichiers Python dans codeql-custom-queries-python-test..."
+        find codeql-custom-queries-python-test -name "*.py" > sources.txt
+        if [ -s sources.txt ]; then
+          echo "Fichiers trouvés, CodeQL va procéder à l'analyse."
+        else
+          echo "Aucun fichier Python de test trouvé."
+          exit 1
+        fi
 
     - name: Perform CodeQL Analysis
       uses: github/codeql-action/analyze@v3
