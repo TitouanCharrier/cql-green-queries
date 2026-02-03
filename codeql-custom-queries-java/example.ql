@@ -1,12 +1,15 @@
 /**
- * This is an automatically generated file
- * @name Hello world
+ * @name Instructions if imbriquées
+ * @description Identifie les instructions 'if' situées à l'intérieur d'un bloc 'then' d'un autre 'if'.
  * @kind problem
- * @problem.severity warning
- * @id java/example/hello-world
+ * @problem.severity recommendation
+ * @id java/nested-if-statements
  */
 
 import java
 
-from File f
-select f, "Hello, world!"
+from IfStmt outer, IfStmt inner
+where
+  // L'instruction 'inner' est contenue dans la branche 'then' de 'outer'
+  inner.getParent+() = outer.getThen()
+select inner, "Cette instruction 'if' est imbriquée dans un autre bloc 'if'."

@@ -1,0 +1,48 @@
+name: "CodeQL Analysis - External Packs"
+
+on:
+  push:
+    branches: [ "main" ]
+    paths:
+      - 'codeql-custom-queries-*-test/**'
+  pull_request:
+    branches: [ "main" ]
+    paths:
+      - 'codeql-custom-queries-*-test/**'
+
+jobs:
+  analyze:
+    name: Analyze Test Code
+    runs-on: ubuntu-latest
+    permissions:
+      actions: read
+      contents: read
+      security-events: write
+
+    strategy:
+      fail-fast: false
+      matrix:
+        # Liste extensible des dossiers de test et des langages associés
+        include:
+          - test_dir: 'codeql-custom-queries-java-test'
+            language: 'java'
+            pack: 'titouancharrier/cql-green-queries-java'
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Initialize CodeQL
+      uses: github/codeql-action/init@v3
+      with:
+        languages: ${{ matrix.language }}
+        # Le pack publié est récupéré ici
+        packs: ${{ matrix.pack }}
+
+    - name: Autobuild
+      uses: github/codeql-action/autobuild@v3
+
+    - name: Perform CodeQL Analysis
+      uses: github/codeql-action/analyze@v3
+      with:
+        category: "/language:${{ matrix.language }}/dir:${{ matrix.test_dir }}"
