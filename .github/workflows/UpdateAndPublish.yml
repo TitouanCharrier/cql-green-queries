@@ -6,11 +6,9 @@ on:
     paths:
       - 'codeql-custom-queries-*/**'
   workflow_dispatch:
-
+  
 jobs:
   publish-packs:
-    # Le job ne s'exécute que si le secret est défini
-    if: ${{ secrets.PACK_PUBLISH_TOKEN != '' }}
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -22,21 +20,22 @@ jobs:
         with:
           token: ${{ secrets.PACK_PUBLISH_TOKEN }}
           fetch-depth: 2
-          
       - name: Install CodeQL CLI
         uses: github/codeql-action/setup-codeql@v4
-        
       - name: Process and Publish Packs
         env:
           GITHUB_TOKEN: ${{ secrets.PACK_PUBLISH_TOKEN }}
         run: |
+          # Add CodeQL to PATH - the binary is in a subdirectory
           export PATH="$RUNNER_TOOL_CACHE/CodeQL/$(ls $RUNNER_TOOL_CACHE/CodeQL)/x64/codeql:$PATH"
           
           git config --local user.email "github-actions[bot]@users.noreply.github.com"
           git config --local user.name "github-actions[bot]"
           
+          # Verify CodeQL is accessible
           codeql version
           
+          # Find all pack directories
           PACK_DIRS=$(find . -maxdepth 1 -type d -name "codeql-custom-queries-*")
           
           for dir in $PACK_DIRS; do
@@ -54,6 +53,7 @@ jobs:
                 continue
               fi
               
+              # Increment version
               VERSION=$(grep '^version:' "$PACK_FILE" | awk '{print $2}')
               BASE_VERSION=$(echo $VERSION | cut -d. -f1-2)
               PATCH=$(echo $VERSION | cut -d. -f3)
@@ -62,6 +62,7 @@ jobs:
               
               echo "Version mise à jour : $VERSION -> $NEW_VERSION"
               
+              # Install and publish
               cd "$DIR_CLEAN"
               codeql pack install
               codeql pack publish
