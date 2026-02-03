@@ -50,19 +50,3 @@ jobs:
       uses: github/codeql-action/analyze@v3
       with:
         category: "/language:${{ matrix.language }}/dir:${{ matrix.test_dir }}"
-
-    - name: Trigger Publish Workflow
-      # On vérifie d'abord que l'analyse est un succès
-      if: success()
-      env:
-        # On injecte le secret dans une variable d'environnement
-        PUBLISH_TOKEN: ${{ secrets.PACK_PUBLISH_TOKEN }}
-        GH_TOKEN: ${{ github.token }}
-      run: |
-        if [ -z "$PUBLISH_TOKEN" ]; then
-          echo "Le secret PACK_PUBLISH_TOKEN est manquant. Saut de la publication."
-          exit 0
-        fi
-
-        echo "Tests réussis et token détecté. Déclenchement de la publication..."
-        gh workflow run "Publish Changed CodeQL Packs" --ref main
