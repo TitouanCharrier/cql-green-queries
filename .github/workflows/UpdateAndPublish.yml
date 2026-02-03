@@ -13,16 +13,17 @@ jobs:
     permissions:
       contents: write
       packages: write
+      security-events: read # Résout l'erreur d'accès API
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
         with:
           token: ${{ secrets.PACK_PUBLISH_TOKEN }}
-          fetch-depth: 2 # Nécessaire pour comparer avec le commit précédent
+          fetch-depth: 2
 
       - name: Install CodeQL CLI
-        uses: github/codeql-action/setup-codeql@v3
+        uses: github/codeql-action/setup-codeql@v4 # Mise à jour vers v4
 
       - name: Process and Publish Packs
         env:
@@ -34,11 +35,10 @@ jobs:
           PACK_DIRS=$(find . -maxdepth 1 -type d -name "codeql-custom-queries-*")
 
           for dir in $PACK_DIRS; do
-            # Vérification si le dossier a été modifié dans le dernier commit
+            # Vérifie les changements par rapport au commit précédent
             if ! git diff --quiet HEAD^ HEAD -- "$dir"; then
-              echo "Changements détectés dans $dir. Préparation de la publication..."
+              echo "Changements détectés dans $dir."
               
-              # Sélection du fichier de config
               if [ -f "$dir/qlpack.yml" ]; then
                 PACK_FILE="$dir/qlpack.yml"
               elif [ -f "$dir/codeql-pack.yml" ]; then
@@ -47,14 +47,14 @@ jobs:
                 continue
               fi
 
-              # 1. Incrémentation
+              # Incrémentation de la version
               VERSION=$(grep '^version:' "$PACK_FILE" | awk '{print $2}')
               BASE_VERSION=$(echo $VERSION | cut -d. -f1-2)
               PATCH=$(echo $VERSION | cut -d. -f3)
               NEW_VERSION="$BASE_VERSION.$((PATCH + 1))"
               sed -i "s/^version: .*/version: $NEW_VERSION/" "$PACK_FILE"
               
-              # 2. Publish
+              # Installation et Publication
               cd "$dir"
               codeql pack install
               codeql pack publish
@@ -62,15 +62,11 @@ jobs:
               
               git add "$PACK_FILE"
               [ -f "$dir/codeql-pack.lock.yml" ] && git add "$dir/codeql-pack.lock.yml"
-            else
-              echo "Aucun changement détecté dans $dir. Ignoré."
             fi
           done
 
-          # 3. Commit unique pour tous les packs mis à jour
+          # Commit et Push si des versions ont été modifiées
           if ! git diff --cached --quiet; then
             git commit -m "chore: bump modified packs versions [skip ci]"
             git push
-          else
-            echo "Aucune modification de version à commiter."
           fi
