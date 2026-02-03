@@ -21,7 +21,8 @@ jobs:
         include:
           - test_dir: 'codeql-custom-queries-java-test'
             language: 'java'
-            pack: 'titouancharrier/cql-green-queries-java'
+            # On pointe vers le dossier local contenant le qlpack.yml
+            local_queries: './codeql-custom-queries-java'
 
     steps:
     - name: Checkout repository
@@ -31,9 +32,9 @@ jobs:
       uses: github/codeql-action/init@v3
       with:
         languages: ${{ matrix.language }}
-        packs: ${{ matrix.pack }}
+        # Suppression de 'packs'. On utilise les requêtes locales.
+        queries: ${{ matrix.local_queries }}
 
-    # Remplacement de l'autobuild par une étape de build manuel
     - name: Manual Build for Java
       if: matrix.language == 'java'
       run: |
@@ -46,10 +47,17 @@ jobs:
           exit 1
         fi
 
-    # L'étape autobuild est supprimée ou désactivée pour Java
-    # Les langages interprétés (Python/JS) n'en ont pas besoin
-
     - name: Perform CodeQL Analysis
       uses: github/codeql-action/analyze@v3
       with:
         category: "/language:${{ matrix.language }}/dir:${{ matrix.test_dir }}"
+
+    # Déclenchement de la publication uniquement si l'analyse réussit
+    - name: Trigger Publish Workflow
+      if: success()
+      run: |
+        echo "Tests réussis. Déclenchement de la publication..."
+        gh conn auth --token ${{ secrets.GITHUB_TOKEN }}
+        gh workflow run "Publish Changed CodeQL Packs"
+      env:
+        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
