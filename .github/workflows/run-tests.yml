@@ -4,7 +4,7 @@ on:
   push:
     branches: [ "main" ]
     paths:
-      - 'codeql-custom-queries-*-test/**'
+      - 'codeql-custom-queries-**/**'
 
 jobs:
   analyze:
@@ -21,7 +21,7 @@ jobs:
         include:
           - test_dir: 'codeql-custom-queries-java-test'
             language: 'java'
-            pack: 'titouancharrier/codeql-green-queries-java'
+            pack: 'titouancharrier/cql-green-queries-java'
 
     steps:
     - name: Checkout repository
