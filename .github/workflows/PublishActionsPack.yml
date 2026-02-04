@@ -1,0 +1,80 @@
+name: Publish CodeQL Actions Pack
+on:
+  workflow_dispatch:  # Bouton manuel
+  push:
+    branches:
+      - main
+    paths:
+      - 'codeql-custom-queries-actions/**'
+
+jobs:
+  publish-pack:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      packages: write
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.PACK_PUBLISH_TOKEN }}
+          
+      - name: Install CodeQL CLI
+        uses: github/codeql-action/setup-codeql@v4
+        
+      - name: Increment version and publish
+        env:
+          GITHUB_TOKEN: ${{ secrets.PACK_PUBLISH_TOKEN }}
+        run: |
+          cd codeql-custom-queries-actions
+          
+          # Déterminer le fichier de pack (qlpack.yml ou codeql-pack.yml)
+          if [ -f "qlpack.yml" ]; then
+            PACK_FILE="qlpack.yml"
+          elif [ -f "codeql-pack.yml" ]; then
+            PACK_FILE="codeql-pack.yml"
+          else
+            echo "Erreur: Aucun fichier qlpack.yml ou codeql-pack.yml trouvé"
+            exit 1
+          fi
+          
+          echo "Fichier de pack trouvé: $PACK_FILE"
+          
+          # Lire la version actuelle
+          OWNER="titouancharrier"
+          PACKAGE_NAME="cql-green-queries-actions"
+    
+          LATEST_VERSION=$(curl -s -H "Authorization: Bearer $GITHUB_TOKEN" "https://api.github.com/users/$OWNER/packages/container/$PACKAGE_NAME/versions" | jq -r '.[0].metadata.container.tags[0]')
+    
+          echo "Dernière version publiée : $LATEST_VERSION"
+          
+          # Incrémenter la version (patch +1)
+          MAJOR=$(echo $LATEST_VERSION | cut -d. -f1)
+          MINOR=$(echo $LATEST_VERSION | cut -d. -f2)
+          PATCH=$(echo $LATEST_VERSION | cut -d. -f3)
+          NEW_VERSION="$MAJOR.$MINOR.$((PATCH + 1))"
+          echo "Nouvelle version: $NEW_VERSION"
+          
+          # Mettre à jour le fichier de pack
+          sed -i "s/^version: .*/version: $NEW_VERSION/" "$PACK_FILE"
+          
+          # Vérifier que CodeQL est accessible
+          which codeql || export PATH="$RUNNER_TOOL_CACHE/CodeQL/$(ls $RUNNER_TOOL_CACHE/CodeQL)/x64/codeql:$PATH"
+          codeql version
+          
+          # Installer et publier
+          codeql pack install
+          codeql pack publish
+          
+      - name: Commit version update
+        run: |
+          git config --local user.email "github-actions[bot]@users.noreply.github.com"
+          git config --local user.name "github-actions[bot]"
+          git add codeql-custom-queries-actions/
+          git diff --staged --quiet || git commit -m "chore: bump actions pack version [skip ci]"
+          git push
+
+# Évite que les workflow se bloquent entre eux
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: false
