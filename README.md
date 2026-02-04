@@ -8,9 +8,11 @@
 Java/Kotlin :
 
 [![Publish CodeQL Java Pack](https://github.com/TitouanCharrier/cql-green-queries/actions/workflows/PublishJavaPack.yml/badge.svg)](https://github.com/TitouanCharrier/cql-green-queries/actions/workflows/PublishJavaPack.yml)
+
 Python:
 
 [![Publish CodeQL Python Pack](https://github.com/TitouanCharrier/cql-green-queries/actions/workflows/PublishPythonPack.yml/badge.svg)](https://github.com/TitouanCharrier/cql-green-queries/actions/workflows/PublishPythonPack.yml)
+
 C/C++ :
 
 [![Publish CodeQL Cpp Pack](https://github.com/TitouanCharrier/cql-green-queries/actions/workflows/PublishCppPack.yml/badge.svg)](https://github.com/TitouanCharrier/cql-green-queries/actions/workflows/PublishCppPack.yml)
