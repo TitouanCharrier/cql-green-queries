@@ -110,9 +110,5 @@ jobs:
           git config --local user.name "github-actions[bot]"
           git add codeql-custom-queries-javascript/
           git diff --staged --quiet || git commit -m "chore: bump javascript pack version [skip ci]"
-          git push
-
-    # Évite que les workflow se bloquent entre eux
-    concurrency:
-      group: publish-lock
-      cancel-in-progress: false
+          git pull --rebase origin main
+          git push origin main

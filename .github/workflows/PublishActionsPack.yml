@@ -109,9 +109,7 @@ jobs:
           git config --local user.name "github-actions[bot]"
           git add codeql-custom-queries-actions/
           git diff --staged --quiet || git commit -m "chore: bump actions pack version [skip ci]"
-          git push
+          git pull --rebase origin main
+          git push origin main
 
-    # Évite que les workflow se bloquent entre eux
-    concurrency:
-      group: publish-lock 
-      cancel-in-progress: false
+
