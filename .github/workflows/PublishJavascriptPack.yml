@@ -114,5 +114,5 @@ jobs:
 
     # Évite que les workflow se bloquent entre eux
     concurrency:
-      group: ${{ github.workflow }}-${{ github.ref }}
+      group: publish-lock
       cancel-in-progress: false
