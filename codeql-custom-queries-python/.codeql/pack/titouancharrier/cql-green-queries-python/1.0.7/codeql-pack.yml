@@ -1,0 +1,12 @@
+---
+library: false
+warnOnImplicitThis: false
+name: titouancharrier/cql-green-queries-python
+version: 1.0.7
+buildMetadata:
+  sha: d9bb9813c737a299b196fccd49ddc6754f7c16ea
+  cliVersion: 2.24.0
+dependencies:
+  codeql/python-all: '*'
+groups:
+ - python
