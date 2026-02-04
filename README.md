@@ -5,7 +5,7 @@
 # Green Code Scan Rules
 
 ---
-Java :
+Java/Kotlin :
 
 [![Publish CodeQL Java Pack](https://github.com/TitouanCharrier/cql-green-queries/actions/workflows/PublishJavaPack.yml/badge.svg)](https://github.com/TitouanCharrier/cql-green-queries/actions/workflows/PublishJavaPack.yml)
 [![CodeQL Unitary Analysis - Java](https://github.com/TitouanCharrier/cql-green-queries/actions/workflows/RunJavaTest.yml/badge.svg)](https://github.com/TitouanCharrier/cql-green-queries/actions/workflows/RunJavaTest.yml)
@@ -15,10 +15,15 @@ Python:
 [![Publish CodeQL Python Pack](https://github.com/TitouanCharrier/cql-green-queries/actions/workflows/PublishPythonPack.yml/badge.svg)](https://github.com/TitouanCharrier/cql-green-queries/actions/workflows/PublishPythonPack.yml)
 [![CodeQL Unitary Analysis - Python](https://github.com/TitouanCharrier/cql-green-queries/actions/workflows/RunPythonTest.yml/badge.svg)](https://github.com/TitouanCharrier/cql-green-queries/actions/workflows/RunPythonTest.yml)
 
-C++ :
+C/C++ :
 
 [![Publish CodeQL Cpp Pack](https://github.com/TitouanCharrier/cql-green-queries/actions/workflows/PublishCppPack.yml/badge.svg)](https://github.com/TitouanCharrier/cql-green-queries/actions/workflows/PublishCppPack.yml)
 [![CodeQL Unitary Analysis - CPP](https://github.com/TitouanCharrier/cql-green-queries/actions/workflows/RunCppTest.yml/badge.svg)](https://github.com/TitouanCharrier/cql-green-queries/actions/workflows/RunCppTest.yml)
+
+Javascript/TypeScript :
+
+[![Publish CodeQL JavaScript Pack](https://github.com/TitouanCharrier/cql-green-queries/actions/workflows/PublishJavascriptPack.yml/badge.svg)](https://github.com/TitouanCharrier/cql-green-queries/actions/workflows/PublishJavascriptPack.yml)
+[![CodeQL Unitary Analysis - JavaScript](https://github.com/TitouanCharrier/cql-green-queries/actions/workflows/RunJavascriptTest.yml/badge.svg)](https://github.com/TitouanCharrier/cql-green-queries/actions/workflows/RunJavascriptTest.yml)
 
 ---
 
