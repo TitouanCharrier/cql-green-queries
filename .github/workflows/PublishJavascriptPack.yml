@@ -112,7 +112,7 @@ jobs:
           git diff --staged --quiet || git commit -m "chore: bump javascript pack version [skip ci]"
           git push
 
-# Évite que les workflow se bloquent entre eux
-concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: false
+    # Évite que les workflow se bloquent entre eux
+    concurrency:
+      group: ${{ github.workflow }}-${{ github.ref }}
+      cancel-in-progress: false
