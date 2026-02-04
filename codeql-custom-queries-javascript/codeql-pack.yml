@@ -5,3 +5,4 @@ name: titouancharrier/cql-green-queries-javascript
 version: 1.0.1
 dependencies:
   codeql/javascript-all: ^2.6.20
+exclude: [test/**]

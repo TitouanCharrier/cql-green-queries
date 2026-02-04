@@ -5,3 +5,4 @@ name: titouancharrier/cql-green-queries-java
 version: 1.0.8
 dependencies:
   codeql/java-all: ^7.8.4
+exclude: [test/**]

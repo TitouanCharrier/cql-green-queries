@@ -1,14 +1,50 @@
-name: Publish CodeQL JavaScript Pack
-
+name: Run Tests and Publish CodeQL javascript Pack
 on:
-  workflow_dispatch:
+  workflow_dispatch:  # Bouton manuel
   push:
     branches:
       - main
     paths:
       - 'codeql-custom-queries-javascript/**'
+exclude:
+  - test/**
 
 jobs:
+
+  analyze:
+    name: Analyze javascript Custom Queries
+    runs-on: ubuntu-latest
+    permissions:
+      actions: read
+      contents: read
+      security-events: write
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Initialize CodeQL
+      uses: github/codeql-action/init@v4
+      with:
+        languages: javascript
+        queries: ./codeql-custom-queries-javascript
+
+    - name: Manual Build (javascript Test Files)
+      run: |
+        echo "Compilation des fichiers javascript dans codeql-custom-queries-javascript/test..."
+        find codeql-custom-queries-javascript-test -name "*.js" > sources.txt
+        if [ -s sources.txt ]; then
+          javascriptc @sources.txt
+        else
+          echo "Aucun fichier javascript de test trouvé."
+          exit 1
+        fi
+
+    - name: Perform CodeQL Analysis
+      uses: github/codeql-action/analyze@v4
+      with:
+        category: "/language:javascript/dir:codeql-custom-queries-javascript/test"
+
   publish-pack:
     runs-on: ubuntu-latest
     permissions:
@@ -41,28 +77,30 @@ jobs:
           
           echo "Fichier de pack trouvé: $PACK_FILE"
           
-          # Paramètres du paquet (À adapter si nécessaire)
+          # Lire la version actuelle
+          
           OWNER="titouancharrier"
           PACKAGE_NAME="cql-green-queries-javascript"
-  
+    
           LATEST_VERSION=$(curl -s -H "Authorization: Bearer $GITHUB_TOKEN" "https://api.github.com/users/$OWNER/packages/container/$PACKAGE_NAME/versions" | jq -r '.[0].metadata.container.tags[0]')
     
-          if [ "$LATEST_VERSION" == "null" ] || [ -z "$LATEST_VERSION" ]; then
-            echo "Aucune version précédente trouvée. Initialisation à 1.0.0"
-            NEW_VERSION="1.0.0"
-          else
-            echo "Dernière version publiée : $LATEST_VERSION"
-            MAJOR=$(echo $LATEST_VERSION | cut -d. -f1)
-            MINOR=$(echo $LATEST_VERSION | cut -d. -f2)
-            PATCH=$(echo $LATEST_VERSION | cut -d. -f3)
-            NEW_VERSION="$MAJOR.$MINOR.$((PATCH + 1))"
-          fi
+          echo "Dernière version publiée : $LATEST_VERSION"
           
+          # Incrémenter la version (patch +1)
+          MAJOR=$(echo $LATEST_VERSION | cut -d. -f1)
+          MINOR=$(echo $LATEST_VERSION | cut -d. -f2)
+          PATCH=$(echo $LATEST_VERSION | cut -d. -f3)
+          NEW_VERSION="$MAJOR.$MINOR.$((PATCH + 1))"
           echo "Nouvelle version: $NEW_VERSION"
+          
+          # Mettre à jour le fichier de pack
           sed -i "s/^version: .*/version: $NEW_VERSION/" "$PACK_FILE"
+          
+          # Vérifier que CodeQL est accessible
           which codeql || export PATH="$RUNNER_TOOL_CACHE/CodeQL/$(ls $RUNNER_TOOL_CACHE/CodeQL)/x64/codeql:$PATH"
           codeql version
-
+          
+          # Installer et publier
           codeql pack install
           codeql pack publish
           
@@ -74,6 +112,7 @@ jobs:
           git diff --staged --quiet || git commit -m "chore: bump javascript pack version [skip ci]"
           git push
 
+# Évite que les workflow se bloquent entre eux
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: false

@@ -6,3 +6,4 @@ version: 1.0.3
 groups: python
 dependencies:
   codeql/python-all: "*"
+exclude: [test/**]
