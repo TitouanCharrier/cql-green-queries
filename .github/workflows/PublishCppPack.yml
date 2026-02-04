@@ -32,7 +32,7 @@ jobs:
         echo "Compilation des fichiers cpp dans codeql-custom-queries-cpp/test..."
         find codeql-custom-queries-cpp/test -name "*.cpp" > sources.txt
         if [ -s sources.txt ]; then
-          cppc @sources.txt
+          javac @sources.txt
         else
           echo "Aucun fichier cpp de test trouvé."
           exit 1

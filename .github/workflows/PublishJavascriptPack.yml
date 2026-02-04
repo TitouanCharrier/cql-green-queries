@@ -32,7 +32,7 @@ jobs:
         echo "Compilation des fichiers javascript dans codeql-custom-queries-javascript/test..."
         find codeql-custom-queries-javascript/test -name "*.js" > sources.txt
         if [ -s sources.txt ]; then
-          javascriptc @sources.txt
+          javac @sources.txt
         else
           echo "Aucun fichier javascript de test trouvé."
           exit 1

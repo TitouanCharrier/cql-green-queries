@@ -32,7 +32,7 @@ jobs:
         echo "Compilation des fichiers actions dans codeql-custom-queries-actions/test..."
         find codeql-custom-queries-actions/test -name "*.actions" > sources.txt
         if [ -s sources.txt ]; then
-          actionsc @sources.txt
+          javac @sources.txt
         else
           echo "Aucun fichier actions de test trouvé."
           exit 1

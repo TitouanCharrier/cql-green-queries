@@ -32,7 +32,7 @@ jobs:
         echo "Compilation des fichiers python dans codeql-custom-queries-python/test..."
         find codeql-custom-queries-python/test -name "*.py" > sources.txt
         if [ -s sources.txt ]; then
-          pythonc @sources.txt
+          javac @sources.txt
         else
           echo "Aucun fichier python de test trouvé."
           exit 1
