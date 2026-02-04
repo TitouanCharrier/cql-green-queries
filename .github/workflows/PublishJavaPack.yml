@@ -42,7 +42,6 @@ jobs:
           
           # Lire la version actuelle
           
-          # Remplacez OWNER et PACKAGE_NAME par vos valeurs
           OWNER="titouancharrier"
           PACKAGE_NAME="cql-green-queries-java"
     
