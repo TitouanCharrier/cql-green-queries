@@ -12,7 +12,7 @@ Java :
 
 Python:
 
-[![Publish CodeQL Python Pack](https://github.com/TitouanCharrier/cql-green-queries/actions/workflows/Publish%20CodeQl%20Python%20Pack.yml/badge.svg)](https://github.com/TitouanCharrier/cql-green-queries/actions/workflows/Publish%20CodeQl%20Python%20Pack.yml)
+[![Publish CodeQL Python Pack](https://github.com/TitouanCharrier/cql-green-queries/actions/workflows/PublishPythonPack.yml/badge.svg)](https://github.com/TitouanCharrier/cql-green-queries/actions/workflows/PublishPythonPack.yml)
 [![CodeQL Unitary Analysis - Python](https://github.com/TitouanCharrier/cql-green-queries/actions/workflows/RunPythonTest.yml/badge.svg)](https://github.com/TitouanCharrier/cql-green-queries/actions/workflows/RunPythonTest.yml)
 ---
 
