@@ -37,26 +37,14 @@ To use copy this code into a Github Action. Precise which language (java by defa
 ```yaml
 name: "CodeQL Analysis"
 
+env:
+  TARGET_LANGUAGE: "java" # To change depending of your project
+
 on:
   push:
     branches: [ "main" ]
   pull_request:
     branches: [ "main" ]
-  schedule:
-    - cron: '30 1 * * 1' # Run every Monday at 01:30
-  workflow_dispatch:
-    inputs:
-      language:
-        description: 'Select the language to scan for green rules'
-        required: true
-        default: 'java'
-        type: choice
-        options:
-        - java
-        - cpp
-        - javascript
-        - python
-        - action
 
 jobs:
   analyze:
@@ -74,10 +62,8 @@ jobs:
     - name: Initialize CodeQL
       uses: github/codeql-action/init@v3
       with:
-        # It use the language you choose in the button
-        languages: ${{ github.event.inputs.language || 'java' }} # change to specify your repo language
-        # It look into the folder cql-green-queries-<language>
-        packs: titouancharrier/cql-green-queries-${{ github.event.inputs.language || 'java' }}
+        languages: ${{ env.TARGET_LANGUAGE }}
+        packs: titouancharrier/cql-green-queries-${{ env.TARGET_LANGUAGE }}
 
     - name: Autobuild
       uses: github/codeql-action/autobuild@v3
@@ -85,7 +71,7 @@ jobs:
     - name: Perform CodeQL Analysis
       uses: github/codeql-action/analyze@v3
       with:
-        category: "/language:${{ github.event.inputs.language || 'java' }}"
+        category: "/language:${{ env.TARGET_LANGUAGE }}"
 
 ```
 
