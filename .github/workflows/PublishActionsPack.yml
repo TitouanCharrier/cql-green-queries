@@ -6,8 +6,6 @@ on:
       - main
     paths:
       - 'codeql-custom-queries-actions/**'
-exclude:
-  - test/**
 
 jobs:
 
