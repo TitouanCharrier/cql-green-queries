@@ -41,13 +41,19 @@ jobs:
           echo "Fichier de pack trouvé: $PACK_FILE"
           
           # Lire la version actuelle
-          CURRENT_VERSION=$(grep '^version:' "$PACK_FILE" | awk '{print $2}')
-          echo "Version actuelle: $CURRENT_VERSION"
+          run: |
+          # Remplacez OWNER et PACKAGE_NAME par vos valeurs
+          OWNER="titouancharrier"
+          PACKAGE_NAME="cql-green-queries-java"
+    
+          LATEST_VERSION=$(curl -s -H "Authorization: Bearer $GITHUB_TOKEN" "https://api.github.com/users/$OWNER/packages/container/$PACKAGE_NAME/versions" | jq -r '.[0].metadata.container.tags[0]')
+    
+          echo "Dernière version publiée : $LATEST_VERSION"
           
           # Incrémenter la version (patch +1)
-          MAJOR=$(echo $CURRENT_VERSION | cut -d. -f1)
-          MINOR=$(echo $CURRENT_VERSION | cut -d. -f2)
-          PATCH=$(echo $CURRENT_VERSION | cut -d. -f3)
+          MAJOR=$(echo $LATEST_VERSION | cut -d. -f1)
+          MINOR=$(echo $LATEST_VERSION | cut -d. -f2)
+          PATCH=$(echo $LATEST_VERSION | cut -d. -f3)
           NEW_VERSION="$MAJOR.$MINOR.$((PATCH + 1))"
           echo "Nouvelle version: $NEW_VERSION"
           
