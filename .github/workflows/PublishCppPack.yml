@@ -29,8 +29,8 @@ jobs:
 
     - name: Manual Build (cpp Test Files)
       run: |
-        echo "Compilation des fichiers cpp dans codeql-custom-queries-cpp-test..."
-        find codeql-custom-queries-cpp-test -name "*.cpp" > sources.txt
+        echo "Compilation des fichiers cpp dans codeql-custom-queries-cpp/test..."
+        find codeql-custom-queries-cpp/test -name "*.cpp" > sources.txt
         if [ -s sources.txt ]; then
           cppc @sources.txt
         else
@@ -41,10 +41,11 @@ jobs:
     - name: Perform CodeQL Analysis
       uses: github/codeql-action/analyze@v4
       with:
-        category: "/language:cpp/dir:codeql-custom-queries-cpp-test"
+        category: "/language:cpp/dir:codeql-custom-queries-cpp/test"
 
   publish-pack:
     runs-on: ubuntu-latest
+    needs: analyze
     permissions:
       contents: write
       packages: write
