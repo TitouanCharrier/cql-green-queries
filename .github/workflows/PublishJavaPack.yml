@@ -41,7 +41,7 @@ jobs:
           echo "Fichier de pack trouvé: $PACK_FILE"
           
           # Lire la version actuelle
-          run: |
+          
           # Remplacez OWNER et PACKAGE_NAME par vos valeurs
           OWNER="titouancharrier"
           PACKAGE_NAME="cql-green-queries-java"
