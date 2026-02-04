@@ -20,6 +20,11 @@ C++ :
 [![Publish CodeQL Cpp Pack](https://github.com/TitouanCharrier/cql-green-queries/actions/workflows/PublishCppPack.yml/badge.svg)](https://github.com/TitouanCharrier/cql-green-queries/actions/workflows/PublishCppPack.yml)
 [![CodeQL Unitary Analysis - CPP](https://github.com/TitouanCharrier/cql-green-queries/actions/workflows/RunCppTest.yml/badge.svg)](https://github.com/TitouanCharrier/cql-green-queries/actions/workflows/RunCppTest.yml)
 
+Javascript :
+
+[![Publish CodeQL JavaScript Pack](https://github.com/TitouanCharrier/cql-green-queries/actions/workflows/PublishJavascriptPack.yml/badge.svg)](https://github.com/TitouanCharrier/cql-green-queries/actions/workflows/PublishJavascriptPack.yml)
+[![CodeQL Unitary Analysis - JavaScript](https://github.com/TitouanCharrier/cql-green-queries/actions/workflows/RunJavascriptTest.yml/badge.svg)](https://github.com/TitouanCharrier/cql-green-queries/actions/workflows/RunJavascriptTest.yml)
+
 ---
 
 This repository have rules which check if your code is eco-friendly (or not). It use CodeQL to find parts of your code that are not good for environment (useless process, memory leak,...).
