@@ -14,6 +14,12 @@ Python:
 
 [![Publish CodeQL Python Pack](https://github.com/TitouanCharrier/cql-green-queries/actions/workflows/PublishPythonPack.yml/badge.svg)](https://github.com/TitouanCharrier/cql-green-queries/actions/workflows/PublishPythonPack.yml)
 [![CodeQL Unitary Analysis - Python](https://github.com/TitouanCharrier/cql-green-queries/actions/workflows/RunPythonTest.yml/badge.svg)](https://github.com/TitouanCharrier/cql-green-queries/actions/workflows/RunPythonTest.yml)
+
+C++ :
+
+[![Publish CodeQL Cpp Pack](https://github.com/TitouanCharrier/cql-green-queries/actions/workflows/PublishCppPack.yml/badge.svg)](https://github.com/TitouanCharrier/cql-green-queries/actions/workflows/PublishCppPack.yml)
+[![CodeQL Unitary Analysis - CPP](https://github.com/TitouanCharrier/cql-green-queries/actions/workflows/RunCppTest.yml/badge.svg)](https://github.com/TitouanCharrier/cql-green-queries/actions/workflows/RunCppTest.yml)
+
 ---
 
 This repository have rules which check if your code is eco-friendly (or not). It use CodeQL to find parts of your code that are not good for environment (useless process, memory leak,...).
