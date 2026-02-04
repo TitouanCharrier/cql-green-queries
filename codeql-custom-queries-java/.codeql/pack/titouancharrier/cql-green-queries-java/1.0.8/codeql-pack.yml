@@ -1,0 +1,10 @@
+---
+library: false
+warnOnImplicitThis: false
+name: titouancharrier/cql-green-queries-java
+version: 1.0.8
+buildMetadata:
+  sha: c74158d2ac8a05c9971f5d87fce65d98ac0b50e8
+  cliVersion: 2.24.0
+dependencies:
+  codeql/java-all: ^7.8.4

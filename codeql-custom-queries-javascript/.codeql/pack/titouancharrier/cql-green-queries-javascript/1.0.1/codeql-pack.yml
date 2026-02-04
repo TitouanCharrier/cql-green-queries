@@ -1,0 +1,10 @@
+---
+library: false
+warnOnImplicitThis: false
+name: titouancharrier/cql-green-queries-javascript
+version: 1.0.1
+buildMetadata:
+  sha: e8c17c6845eab27d0c90103b533bdd17ceeb4c5d
+  cliVersion: 2.24.0
+dependencies:
+  codeql/javascript-all: ^2.6.20
