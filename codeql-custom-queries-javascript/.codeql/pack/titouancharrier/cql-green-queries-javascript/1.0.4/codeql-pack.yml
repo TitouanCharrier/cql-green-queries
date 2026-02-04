@@ -3,6 +3,8 @@ library: false
 warnOnImplicitThis: false
 name: titouancharrier/cql-green-queries-javascript
 version: 1.0.4
+buildMetadata:
+  sha: d9bb9813c737a299b196fccd49ddc6754f7c16ea
+  cliVersion: 2.24.0
 dependencies:
   codeql/javascript-all: ^2.6.20
-exclude: [test/**]
