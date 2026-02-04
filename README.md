@@ -92,6 +92,8 @@ jobs:
 
 If you wish to contribute refer to the [contributing file](CONTRIBUTING.md).
 
+---
+
 ## Licence
 
 This project is under the GPL3 Licence.
