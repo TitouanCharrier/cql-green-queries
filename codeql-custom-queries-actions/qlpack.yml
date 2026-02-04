@@ -1,5 +1,0 @@
-name: TitouanCharrier/cql-green-queries-yaml
-version: 1.0.0
-groups: yaml
-dependencies:
-  codeql/yaml-all: "*"
