@@ -25,6 +25,10 @@ Javascript/TypeScript :
 [![Publish CodeQL JavaScript Pack](https://github.com/TitouanCharrier/cql-green-queries/actions/workflows/PublishJavascriptPack.yml/badge.svg)](https://github.com/TitouanCharrier/cql-green-queries/actions/workflows/PublishJavascriptPack.yml)
 [![CodeQL Unitary Analysis - JavaScript](https://github.com/TitouanCharrier/cql-green-queries/actions/workflows/RunJavascriptTest.yml/badge.svg)](https://github.com/TitouanCharrier/cql-green-queries/actions/workflows/RunJavascriptTest.yml)
 
+Actions/YAML :
+
+[![Publish CodeQL Actions Pack](https://github.com/TitouanCharrier/cql-green-queries/actions/workflows/PublishActionsPack.yml/badge.svg)](https://github.com/TitouanCharrier/cql-green-queries/actions/workflows/PublishActionsPack.yml)
+
 ---
 
 This repository have rules which check if your code is eco-friendly (or not). It use CodeQL to find parts of your code that are not good for environment (useless process, memory leak,...).
