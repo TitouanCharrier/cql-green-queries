@@ -30,11 +30,11 @@ jobs:
     - name: Manual Build (python Test Files)
       run: |
         echo "Compilation des fichiers python dans codeql-custom-queries-python/test..."
-        find codeql-custom-queries-python/test -name "*.py" > sources.txt
+         find codeql-custom-queries-python/test -name "*.py" > sources.txt
         if [ -s sources.txt ]; then
-          javac @sources.txt
+          echo "Fichiers trouvés, CodeQL va procéder à l'analyse."
         else
-          echo "Aucun fichier python de test trouvé."
+          echo "Aucun fichier Python de test trouvé."
           exit 1
         fi
 

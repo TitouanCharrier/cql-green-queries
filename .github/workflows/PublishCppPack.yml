@@ -30,11 +30,13 @@ jobs:
     - name: Manual Build (cpp Test Files)
       run: |
         echo "Compilation des fichiers cpp dans codeql-custom-queries-cpp/test..."
-        find codeql-custom-queries-cpp/test -name "*.cpp" > sources.txt
+        find codeql-custom-queries-cpp/test -name "*.cpp" -o -name "*.c" > sources.txt
         if [ -s sources.txt ]; then
-          javac @sources.txt
+          while read file; do
+            g++ -c "$file" -o "${file%.*}.o"
+          done < sources.txt
         else
-          echo "Aucun fichier cpp de test trouvé."
+          echo "Aucun fichier source C++ trouvé."
           exit 1
         fi
 
