@@ -1,0 +1,12 @@
+---
+library: false
+warnOnImplicitThis: false
+name: titouancharrier/cql-green-queries-actions
+version: 1.0.1
+buildMetadata:
+  sha: 5b7a0fe5d41404e0479598c4b2f6a5d2a7e14e7b
+  cliVersion: 2.24.0
+dependencies:
+  codeql/actions-all: '*'
+groups:
+ - yaml
