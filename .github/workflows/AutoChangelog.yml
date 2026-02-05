@@ -1,0 +1,35 @@
+name: Generate Changelog
+
+on:
+  push:
+    branches:
+      - main  # Ou le nom de votre branche par défaut
+    tags:
+      - 'v*'   # Déclenche aussi lors de la création d'un tag (ex: v1.0.0)
+
+jobs:
+  changelog:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write # Important pour pouvoir push le changelog
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # Récupère tout l'historique pour le changelog
+
+      - name: Generate Changelog
+        uses: orhun/git-cliff-action@v4
+        with:
+          config: cliff.toml
+          args: --verbose
+        env:
+          OUTPUT: CHANGELOG.md
+
+      - name: Commit and Push Changelog
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add CHANGELOG.md
+          git commit -m "chore: update CHANGELOG.md" || echo "No changes to commit"
+          git push
