@@ -1,4 +1,4 @@
-name: Run Tests and Publish CodeQL cpp Pack
+name: C++ - Run Tests and Publish CodeQL Pack
 on:
   workflow_dispatch:  # Bouton manuel
   push:
