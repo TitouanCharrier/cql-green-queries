@@ -1,33 +1,4 @@
-# Changelog
-
-All notable changes to this project will be documented in this file.
-
-The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
-and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
-
----
-
-## [Unreleased]
-
-### Added
-- Created the initial directory structure for CodeQL Action queries.
-- New query to detect `Hello World` in GitHub Actions workflows.
-
-### Fixed
-- Resolved `codeql: command not found` error in the CI pipeline by correctly mapping the tool cache path.
-
----
-
-## [1.0.0] - 2026-02-05
-
-### Added
-- Initial release of the CodeQL Pack for GitHub Actions.
-- Automated versioning script using GitHub Actions and `jq`.
-- Support for publishing to GitHub Packages (GHCR).
-
----
-
-## How to Maintain this Changelog
+# How to Maintain the Changelog
 
 This project uses **Conventional Commits** to ensure consistency and to automate the update process.
 
