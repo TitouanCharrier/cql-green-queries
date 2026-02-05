@@ -27,7 +27,7 @@ jobs:
           args: --verbose
         env:
           # Cette commande va générer les changelogs pour chaque dossier trouvé
-          OUTPUT: "codeql-custom-queries-*/CHANGELOG.md"
+          OUTPUT: "codeql-custom-queries-**/CHANGELOG.md"
 
       - name: Commit and Push
         run: |
