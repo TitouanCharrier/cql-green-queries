@@ -1,4 +1,4 @@
-name: CI
+name: PR & Commit Validation
 
 on:
   push:
