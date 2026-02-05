@@ -1,27 +1,42 @@
-name: PR & Commit Validation
+name: CI
 
 on:
   push:
   pull_request:
     types: [opened, synchronize, reopened, edited]
 
+permissions:
+  contents: read
+
 jobs:
-  validate-conventional-commits:
+  commitlint:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: PR Title Validation
-        if: github.event_name == 'pull_request'
-        uses: ytanikin/pr-conventional-commits@1.4.0
+      - uses: actions/checkout@v4
         with:
-          task_types: '["feat","fix","docs","test","ci","refactor","perf","chore","revert"]'
-          add_label: 'false'
+          fetch-depth: 0
 
-      - name: Push Commit Message Validation
+      - name: Setup node
+        uses: actions/setup-node@v4
+        with:
+          node-version: lts/*
+
+      - name: Install commitlint
+        run: npm install -D @commitlint/cli @commitlint/config-conventional
+
+      - name: Create commitlint config
+        run: |
+          echo "export default {
+            extends: ['@commitlint/config-conventional'],
+            rules: {
+              'type-enum': [2, 'always', ['feat', 'fix', 'docs', 'test', 'ci', 'refactor', 'perf', 'chore', 'revert']]
+            }
+          };" > commitlint.config.mjs
+
+      - name: Validate current commit (Push)
         if: github.event_name == 'push'
-        uses: ytanikin/pr-conventional-commits@1.4.0
-        with:
-          task_types: '["feat","fix","docs","test","ci","refactor","perf","chore","revert"]'
-          add_label: 'false'
+        run: npx commitlint --last --verbose
+
+      - name: Validate PR commits (Pull Request)
+        if: github.event_name == 'pull_request'
+        run: npx commitlint --from ${{ github.event.pull_request.base.sha }} --to ${{ github.event.pull_request.head.sha }} --verbose
