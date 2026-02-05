@@ -1,163 +1,232 @@
-# Tutoriel CodeQL
+# Tutoriel CodeQL pour l'Éco-conception
 
-CodeQL transforme votre code en base de données interrogeable. Voici comment écrire des requêtes pour détecter des patterns / code smells.
+## Intérêts du langage CodeQL
 
-## Les fondamentaux
+CodeQL est un langage d'analyse de code qui permet de détecter des patterns problématiques dans une codebase. Pour l'éco-conception, il devient un outil puissant pour :
 
-Une requête CodeQL analyse la structure du code (analyse statique). Elle cherche des patterns dans l'arbre syntaxique abstrait (AST).
+- **Détecter les gaspillages énergétiques** : boucles inefficaces, requêtes N+1, polling inutile
+- **Identifier les fuites de ressources** : connexions non fermées, caches non libérés
+- **Repérer les anti-patterns** : chargements excessifs de données, transformations inutiles
+- **Automatiser les audits** : scanner tout le code en quelques secondes au lieu de reviews manuelles
+
+CodeQL transforme le code en base de données interrogeable sous la forme d'un arbre de syntaxe (AST). Il permet d'écrire des requêtes qui détectent des patterns problématiques (code smells).
+
+## Syntaxe basique d'une requête
+
+Une requête CodeQL suit toujours cette structure :
+(ici exemple avec une requète java)
+```ql
+import java
+
+from MethodCall call
+where call.getMethod().hasName("toString")
+select call, "Conversion inutile vers String"
+```
+
+**Composition :**
+
+- `import java` : importe la bibliothèque pour analyser du code Java
+- `from ... ` : définit les variables (comme un FROM en SQL)
+- `where ...` : filtre les résultats (comme un WHERE en SQL)
+- `select ...` : choisit ce qu'on affiche (comme un SELECT en SQL)
+
+**Exemple :** Trouver les `Thread.sleep()` qui font du polling actif
+
+```ql
+import java
+
+from MethodCall sleep
+where 
+  sleep.getMethod().hasName("sleep") and
+  sleep.getMethod().getDeclaringType().hasName("Thread")
+select sleep, "Polling actif détecté - consomme du CPU inutilement"
+```
+
+## Les outils principaux à disposition
+
+### 1. Les classes de base
+
+Chaque langage a ses classes principales.
+
+Un fichier .md sera fourni dans chaque dossier pour rappeler les classes spécifiques à chaque language.
+
+Exemple en Java :
+
+- `MethodCall` : un appel de méthode
+- `Method` : une déclaration de méthode
+- `Class` : une classe
+- `Field` : un attribut
+- `Expr` : une expression
+
+### 2. Les prédicats
+
+Les prédicats sont des fonctions réutilisables qui retournent vrai/faux.
+
+```ql
+predicate estRequeteSQL(MethodCall m) {
+  m.getMethod().hasName("executeQuery") or
+  m.getMethod().hasName("executeUpdate")
+}
+
+from MethodCall sql
+where estRequeteSQL(sql)
+select sql, "Requête SQL détectée"
+```
+
+**Exemple éco-conception :** Prédicat pour détecter les méthodes gourmandes
+
+```ql
+predicate estMethodeGourmande(Method m) {
+  m.getName().matches("%All%") or
+  m.getName().matches("%Everything%")
+}
+
+from MethodCall call
+where estMethodeGourmande(call.getMethod())
+select call, "Méthode qui charge tout - risque de surconsommation mémoire"
+```
+
+### 3. Les méthodes de navigation
+
+CodeQL permet de naviguer dans l'AST représentant le code analysé :
+
+- `.getMethod()` : récupère la méthode appelée
+- `.getAnArgument()` : récupère un argument
+- `.getEnclosingCallable()` : récupère la fonction contenante
+- `.getAChild()` : récupère un enfant dans l'AST
+
+
+### 4. Les quantificateurs
+
+- `exists(...)` : il existe au moins un
+- `forall(...)` : pour tous
+- `not exists(...)` : il n'existe aucun
+
+## Les concepts avancés
+
+### 1. Data Flow (Flux de données)
+
+Le data flow suit comment les données circulent dans le code.
+
+**Cas simple :** Trouver où une variable arrive
+
+```ql
+import java
+import semmle.code.java.dataflow.DataFlow
+
+from MethodCall source, Expr sink
+where DataFlow::localFlow(
+  DataFlow::exprNode(source),
+  DataFlow::exprNode(sink)
+)
+select sink, "Données provenant de " + source.toString()
+```
+
+**Exemple :** Détecter les gros objets passés par valeur
+
+```ql
+import java
+import semmle.code.java.dataflow.DataFlow
+
+class GrosObjet extends Class {
+  GrosObjet() {
+    this.getName().matches("%Image%") or
+    this.getName().matches("%Video%") or
+    this.getName().matches("%Document%")
+  }
+}
+
+from Parameter param, GrosObjet type
+where 
+  param.getType() = type and
+  not param.getType() instanceof RefType
+select param, "Gros objet passé par valeur - préférer une référence"
+```
+
+### 2. Taint Flow (Flux de contamination)
+
+Le taint flow suit la "contamination" des données (ex: données utilisateur → risque injection).
 
 **Structure de base :**
-```ql
-import java
-
-from MethodAccess call
-where call.getMethod().hasName("execute")
-select call, "Appel à la méthode execute"
-```
-
-Cette requête se lit comme du SQL : `from` définit ce qu'on cherche, `where` filtre, `select` affiche les résultats.
-
-## Les trois piliers d'une requête
-
-### 1. Import et classes
-Commencez par importer le langage cible :
-```ql
-import javascript
-import python
-import cpp
-```
-
-Les classes représentent les éléments du code. Exemples : `Function`, `IfStmt`, `Variable`, `StringLiteral`.
-
-### 2. Le pattern FROM-WHERE-SELECT
-
-**FROM** : déclarez vos variables
-```ql
-from FunctionCall fc, string name
-```
-
-**WHERE** : exprimez vos conditions
-```ql
-where fc.getTarget().getName() = "eval" and
-      name = fc.getArgument(0).toString()
-```
-
-**SELECT** : choisissez ce qui s'affiche
-```ql
-select fc, "Appel dangereux à eval avec : " + name
-```
-
-### 3. La navigation dans le code
-
-CodeQL utilise des prédicats (méthodes) pour naviguer :
-
-```ql
-// Remonter : de l'appel vers la fonction
-call.getTarget().getName()
-
-// Descendre : de la fonction vers ses paramètres
-func.getParameter(0)
-
-// Traverser : trouver le bloc englobant
-stmt.getEnclosingStmt()
-```
-
-## Exemple concret : détecter une injection SQL
 
 ```ql
 import java
+import semmle.code.java.dataflow.TaintTracking
 
-from Variable conn, VariableAccess access
-where 
-  // Variable de type Connection
-  conn.getType().hasName("Connection") and
-  access.getVariable() = conn and
+class MaConfigTaint extends TaintTracking::Configuration {
+  MaConfigTaint() { this = "MaConfigTaint" }
   
-  // La connexion est créée mais jamais fermée
-  exists(MethodAccess create | 
-    create.getMethod().hasName("getConnection") and
-    create.getParent*() = conn.getInitializer()
-  ) and
-  
-  // Aucun appel à close() dans un finally ou try-with-resources
-  not exists(MethodAccess close | 
-    close.getMethod().hasName("close") and
-    close.getQualifier() = access
-  ) and
-  
-  not conn.getAnAccess().getParent() instanceof TryStmt
-  
-select conn, "Fuite de ressource : connexion jamais fermée. " +
-       "Utiliser try-with-resources pour économiser les ressources serveur."
-```
-
-## Concepts avancés essentiels
-
-### Data flow (flux de données)
-Suit les données à travers le code :
-```ql
-DataFlow::localFlow(source, sink)  // Dans une fonction
-DataFlow::globalFlow(source, sink) // Entre fonctions
-```
-
-### Taint tracking (propagation de contamination)
-Détecte quand des données dangereuses atteignent un point sensible :
-```ql
-class SqlInjectionConfig extends TaintTracking::Configuration {
   override predicate isSource(DataFlow::Node source) {
-    source.asExpr() instanceof UserInput
+    // Définir les sources
   }
   
   override predicate isSink(DataFlow::Node sink) {
-    exists(MethodAccess ma | 
-      ma.getMethod().hasName("executeQuery") and
-      sink.asExpr() = ma.getArgument(0)
-    )
+    // Définir les destinations
   }
 }
 ```
 
-### Quantificateurs logiques
-**exists** : "il existe au moins un" 
+**Exemple :** Tracer les gros payloads jusqu'aux logs
+
 ```ql
-exists(IfStmt if | if.getCondition() = expr)
-```
+import java
+import semmle.code.java.dataflow.TaintTracking
 
-**forall** : "pour tous"
-```ql
-forall(Parameter p | p = func.getParameter(_) | p.getType().hasName("String"))
-```
-
-## Astuces pratiques
-
-**1. Testez progressivement** : commencez simple, ajoutez des contraintes une par une.
-
-**2. Utilisez les prédicats réutilisables** :
-```ql
-predicate isDangerousCall(MethodAccess ma) {
-  ma.getMethod().hasName("eval") or
-  ma.getMethod().hasName("exec")
+class GrosPayloadVersLog extends TaintTracking::Configuration {
+  GrosPayloadVersLog() { this = "GrosPayloadVersLog" }
+  
+  override predicate isSource(DataFlow::Node source) {
+    exists(MethodCall call |
+      call.getMethod().getName().matches("%All%") and
+      source.asExpr() = call
+    )
+  }
+  
+  override predicate isSink(DataFlow::Node sink) {
+    exists(MethodCall log |
+      log.getMethod().getDeclaringType().getName().matches("%Log%") and
+      sink.asExpr() = log.getAnArgument()
+    )
+  }
 }
+
+from GrosPayloadVersLog config, DataFlow::Node source, DataFlow::Node sink
+where config.hasFlow(source, sink)
+select sink, "Gros payload logué - gaspillage I/O et stockage"
 ```
 
-**3. Explorez les bibliothèques standard** : CodeQL fournit des prédicats prêts à l'emploi pour les patterns courants (XSS, injection, etc.).
+### 3. Requêtes avec agrégation
 
-**4. Limitez les faux positifs** : ajoutez des conditions pour exclure les cas légitimes :
+Compter, grouper, trouver les pires cas.
+
+**Exemple :** Identifier les classes avec le plus d'allocations
+
 ```ql
-where isDangerous(call) and
-      not call.getEnclosingCallable().hasName("sanitize")
+import java
+
+from Class c, int allocations
+where allocations = count(ClassInstanceExpr alloc |
+  alloc.getEnclosingCallable().getDeclaringType() = c
+) and allocations > 10
+select c, allocations + " allocations - optimiser la réutilisation d'objets"
+order by allocations desc
 ```
 
-## Workflow recommandé
+### 4. Analyse de path (chemins d'exécution)
 
-1. Identifiez le pattern à détecter (ex: "appels à eval avec entrée utilisateur")
-2. Trouvez les classes CodeQL correspondantes (`MethodAccess`, `UserInput`)
-3. Écrivez la requête de base (sans filtres)
-4. Ajoutez les contraintes pour réduire les faux positifs
-5. Testez sur du code réel et affinez
+Détecter des patterns complexes avec `getAPredecessor()` et `getASuccessor()`.
 
-## Ressources
+**Exemple :** Détecter if-else qui font la même allocation
 
-Le site de CodeQL offre une documentation exhaustive et des exemples : explorez les requêtes standard dans le dépôt GitHub `github/codeql` pour apprendre des patterns éprouvés.
+```ql
+import java
 
-Avec ces bases, vous pouvez déjà créer des requêtes puissantes pour auditer votre code automatiquement !
+from IfStmt ifStmt, ClassInstanceExpr alloc1, ClassInstanceExpr alloc2
+where 
+  alloc1.getEnclosingStmt().getParent*() = ifStmt.getThen() and
+  alloc2.getEnclosingStmt().getParent*() = ifStmt.getElse() and
+  alloc1.getConstructedType() = alloc2.getConstructedType()
+select ifStmt, "Allocation identique dans if/else - mutualiser avant le if"
+```
+
+### Fin !
