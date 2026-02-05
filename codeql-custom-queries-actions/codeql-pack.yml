@@ -3,4 +3,4 @@ version: 1.0.3
 groups: yaml
 dependencies:
   codeql/actions-all: "*"
-exclude: [test/**]
+exclude: [test/**, CHANGELOG.md, README.md]
