@@ -1,4 +1,4 @@
-name: Run Tests and Publish CodeQL javascript Pack
+name: Javascript - Run Tests and Publish CodeQL Pack
 on:
   workflow_dispatch:  # Bouton manuel
   push:
