@@ -21,8 +21,7 @@ jobs:
 
       - name: Run CodeQL Unit Tests
         run: |
-          # Utilise le chemin de sortie de l'étape précédente
-          ${{ steps.setup-codeql.codeql-path }} test run codeql-custom-queries-actions/tests
+          "${{ steps.setup-codeql.outputs.codeql-path }}" test run codeql-custom-queries-actions/tests
 
   publish-pack:
     runs-on: ubuntu-latest
