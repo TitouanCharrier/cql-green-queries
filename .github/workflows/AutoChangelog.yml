@@ -2,9 +2,9 @@ name: Multi-Package Changelog
 
 on:
   push:
-    #branches: [main]
-    #paths:
-    #  - 'codeql-custom-queries-**' # Ne se déclenche que si un package change
+    branches: [main]
+    paths:
+      - 'codeql-custom-queries-**' # Ne se déclenche que si un package change
 
 jobs:
   generate-changelogs:
