@@ -229,4 +229,4 @@ where
 select ifStmt, "Allocation identique dans if/else - mutualiser avant le if"
 ```
 
-### Fin !
+### Fin ! 
