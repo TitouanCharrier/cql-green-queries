@@ -24,3 +24,4 @@ When you write a commit, it should determine where the information goes in this 
 2. **Commit**: Use a clear message: `feat: add query to detect insecure shell execution`.
 3. **Update**: Before merging to `main`, add a line under the `[Unreleased]` section describing the change.
 4. **Release**: When the GitHub Action triggers a "Publish", the `[Unreleased]` content is moved to a new version header with the current date.
+
