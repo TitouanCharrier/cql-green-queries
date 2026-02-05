@@ -1,4 +1,4 @@
-name: Run Tests and Publish CodeQL actions Pack
+name: Run Tests and Publish CodeQL Pack - Actions
 on:
   workflow_dispatch:  # Bouton manuel
   push:
@@ -30,7 +30,7 @@ jobs:
     - name: Manual Build (actions Test Files)
       run: |
         echo "Compilation des fichiers actions dans codeql-custom-queries-actions/test..."
-        find codeql-custom-queries-actions/test -name "*.actions" > sources.txt
+        find codeql-custom-queries-actions/test -name "*.yml" > sources.txt
         if [ -s sources.txt ]; then
           javac @sources.txt
         else
