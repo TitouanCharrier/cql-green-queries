@@ -16,12 +16,13 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Install CodeQL CLI
+        id: setup-codeql
         uses: github/codeql-action/setup-codeql@v4
 
       - name: Run CodeQL Unit Tests
         run: |
-          # Cette commande cherche tous les tests (.ql/.expected) dans le dossier
-          codeql test run codeql-custom-queries-actions/tests
+          # Utilise le chemin de sortie de l'étape précédente
+          ${{ steps.setup-codeql.codeql-path }} test run codeql-custom-queries-actions/tests
 
   publish-pack:
     runs-on: ubuntu-latest
