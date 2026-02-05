@@ -6,6 +6,7 @@ on:
       - main  # Ou le nom de votre branche par défaut
     tags:
       - 'v*'   # Déclenche aussi lors de la création d'un tag (ex: v1.0.0)
+  workflow_dispatch:
 
 jobs:
   changelog:
