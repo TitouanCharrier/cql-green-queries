@@ -1,0 +1,6 @@
+|       loop        |                             col1                              |
++-------------------+---------------------------------------------------------------+
+| for (...;...;...) | Use System.arraycopy to copy arrays instead of a manual loop. |
+| while (...)       | Use System.arraycopy to copy arrays instead of a manual loop. |
+| for (... : ...)   | Use System.arraycopy to copy arrays instead of a manual loop. |
+| for (...;...;...) | Use System.arraycopy to copy arrays instead of a manual loop. |

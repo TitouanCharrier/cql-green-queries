@@ -1,8 +1,6 @@
----
-library: false
-warnOnImplicitThis: false
 name: titouancharrier/cql-green-queries-java
 version: 1.0.11
+extractor: java
 dependencies:
   codeql/java-all: ^7.8.4
-exclude: [test/**]
+tests: .
