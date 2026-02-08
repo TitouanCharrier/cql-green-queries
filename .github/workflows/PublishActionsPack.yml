@@ -1,6 +1,6 @@
-name: Run Tests and Publish CodeQL actions Pack
+name: Actions - Run Analysis and Publish CodeQL Pack
 on:
-  workflow_dispatch:  # Bouton manuel
+  workflow_dispatch:
   push:
     branches:
       - main
@@ -8,9 +8,8 @@ on:
       - 'codeql-custom-queries-actions/**'
 
 jobs:
-
   analyze:
-    name: Analyze actions Custom Queries
+    name: Analyze Actions Custom Queries
     runs-on: ubuntu-latest
     permissions:
       actions: read
@@ -24,19 +23,13 @@ jobs:
     - name: Initialize CodeQL
       uses: github/codeql-action/init@v4
       with:
-        languages: actions
+        # Pour analyser des fichiers YAML/Actions, on utilise le moteur javascript
+        languages: javascript-typescript 
         queries: ./codeql-custom-queries-actions
 
-    - name: Manual Build (actions Test Files)
-      run: |
-        echo "Compilation des fichiers actions dans codeql-custom-queries-actions/test..."
-        find codeql-custom-queries-actions/test -name "*.actions" > sources.txt
-        if [ -s sources.txt ]; then
-          javac @sources.txt
-        else
-          echo "Aucun fichier actions de test trouvé."
-          exit 1
-        fi
+    # Pas de build nécessaire pour le YAML, contrairement au Java
+    - name: Manual Build (Actions)
+      run: echo "Analyse des fichiers YAML dans codeql-custom-queries-actions/test..."
 
     - name: Perform CodeQL Analysis
       uses: github/codeql-action/analyze@v4
@@ -64,42 +57,35 @@ jobs:
         run: |
           cd codeql-custom-queries-actions
           
-          # Déterminer le fichier de pack (qlpack.yml ou codeql-pack.yml)
           if [ -f "qlpack.yml" ]; then
             PACK_FILE="qlpack.yml"
           elif [ -f "codeql-pack.yml" ]; then
             PACK_FILE="codeql-pack.yml"
           else
-            echo "Erreur: Aucun fichier qlpack.yml ou codeql-pack.yml trouvé"
+            echo "Erreur: Aucun fichier pack trouvé"
             exit 1
           fi
-          
-          echo "Fichier de pack trouvé: $PACK_FILE"
-          
-          # Lire la version actuelle
           
           OWNER="titouancharrier"
           PACKAGE_NAME="cql-green-queries-actions"
     
           LATEST_VERSION=$(curl -s -H "Authorization: Bearer $GITHUB_TOKEN" "https://api.github.com/users/$OWNER/packages/container/$PACKAGE_NAME/versions" | jq -r '.[0].metadata.container.tags[0]')
     
-          echo "Dernière version publiée : $LATEST_VERSION"
+          if [ "$LATEST_VERSION" == "null" ] || [ -z "$LATEST_VERSION" ]; then
+            NEW_VERSION="1.0.0"
+          else
+            MAJOR=$(echo $LATEST_VERSION | cut -d. -f1)
+            MINOR=$(echo $LATEST_VERSION | cut -d. -f2)
+            PATCH=$(echo $LATEST_VERSION | cut -d. -f3)
+            NEW_VERSION="$MAJOR.$MINOR.$((PATCH + 1))"
+          fi
           
-          # Incrémenter la version (patch +1)
-          MAJOR=$(echo $LATEST_VERSION | cut -d. -f1)
-          MINOR=$(echo $LATEST_VERSION | cut -d. -f2)
-          PATCH=$(echo $LATEST_VERSION | cut -d. -f3)
-          NEW_VERSION="$MAJOR.$MINOR.$((PATCH + 1))"
           echo "Nouvelle version: $NEW_VERSION"
-          
-          # Mettre à jour le fichier de pack
           sed -i "s/^version: .*/version: $NEW_VERSION/" "$PACK_FILE"
           
-          # Vérifier que CodeQL est accessible
-          which codeql || export PATH="$RUNNER_TOOL_CACHE/CodeQL/$(ls $RUNNER_TOOL_CACHE/CodeQL)/x64/codeql:$PATH"
-          codeql version
+          # Fix Path pour le CLI
+          which codeql || export PATH="$RUNNER_TOOL_CACHE/CodeQL/$(ls $RUNNER_TOOL_CACHE/CodeQL | head -n 1)/x64/codeql:$PATH"
           
-          # Installer et publier
           codeql pack install
           codeql pack publish
           
@@ -111,5 +97,3 @@ jobs:
           git diff --staged --quiet || git commit -m "chore: bump actions pack version [skip ci]"
           git pull --rebase origin main
           git push origin main
-
-
