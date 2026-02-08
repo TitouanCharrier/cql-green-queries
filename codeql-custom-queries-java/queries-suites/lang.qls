@@ -1,6 +1,6 @@
 - description: "Requètes relatives au language"
-- queries: .
+- queries: ../
 - include:
 - include:
-    tags:
-      - lang
+  - tags:
+    - lang
