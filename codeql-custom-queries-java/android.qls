@@ -1,0 +1,7 @@
+- description: "Requètes relatives au language"
+- queries: .
+- include:
+- include:
+    tags:
+      - lang
+      - android
