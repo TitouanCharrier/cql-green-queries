@@ -45,7 +45,7 @@ jobs:
 
   publish-pack:
     runs-on: ubuntu-latest
-    needs: analyze
+    #needs: analyze
     permissions:
       contents: write
       packages: write
