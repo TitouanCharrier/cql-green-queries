@@ -4,3 +4,4 @@ extractor: java
 dependencies:
   codeql/java-all: ^7.8.4
 tests: .
+  --no-strict-javac-errors
