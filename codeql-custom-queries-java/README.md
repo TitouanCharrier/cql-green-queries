@@ -28,10 +28,12 @@ codeql-custom-queries-java/
 .
 ├── android
 │   ├── java
+│   │   ├── android-java-test.actual
 │   │   ├── android-java-test.expected
 │   │   ├── android-java-test.java
 │   │   └── android-java-test.ql
 │   └── kotlin
+│       ├── android-kotlin-test.actual
 │       └── android-kotlin-test.ql
 ├── cleanActual.sh
 ├── codeql-pack.lock.yml
@@ -51,5 +53,5 @@ codeql-custom-queries-java/
 ├── README.md.tmp
 └── updateReadme.sh
 
-6 directories, 19 files
+6 directories, 21 files
 ```
