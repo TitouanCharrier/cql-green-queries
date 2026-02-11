@@ -1,5 +1,5 @@
 
-public class ExampleTest {
+public class LangTest {
 
     public void validate(int x, int y) {
         // Cas positif : détecté par la requête
