@@ -7,4 +7,8 @@
  * android-java
  */
 
-select "La requète android-java 1 à été éxécuté"
+import java
+
+from IfStmt outer, IfStmt inner
+where outer.getThen() = inner
+select outer, "Instruction if imbrique detecte."
