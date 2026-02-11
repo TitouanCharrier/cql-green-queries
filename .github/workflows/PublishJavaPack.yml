@@ -28,7 +28,7 @@ jobs:
         queries: ./codeql-custom-queries-java
 
     - name: Run Tests
-      run: ./launchTests.sh
+      run: codeql-custom-queries-java/launchTests.sh
 
 
   publish-pack:
