@@ -24,12 +24,6 @@ jobs:
     - name: Install CodeQL CLI
       uses: github/codeql-action/setup-codeql@v4
 
-    - name: Initialize CodeQL
-      uses: github/codeql-action/init@v4
-      with:
-        languages: java
-        queries: ./codeql-custom-queries-java
-
     - name: Run Tests
       run: codeql-custom-queries-java/launchTests.sh
 
