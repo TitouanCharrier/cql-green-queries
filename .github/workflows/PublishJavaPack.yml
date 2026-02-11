@@ -17,24 +17,23 @@ jobs:
       contents: read
       security-events: write
 
-steps:
-    - name: Checkout repository
-      uses: actions/checkout@v4
-
-    - name: Install CodeQL CLI
-      uses: github/codeql-action/setup-codeql@v3
-
-    - name: Run Tests
-      # Le répertoire de travail est défini au niveau de l'étape
-      working-directory: codeql-custom-queries-java
-      run: |
-        # Installation des dépendances du pack avant le test
-        codeql pack install
-        # Attribution des droits et exécution
-        chmod +x launchTests.sh updateReadme.sh
-        ./launchTests.sh
-
-
+    steps:
+        - name: Checkout repository
+          uses: actions/checkout@v4
+    
+        - name: Install CodeQL CLI
+          uses: github/codeql-action/setup-codeql@v3
+    
+        - name: Run Tests
+          # Le répertoire de travail est défini au niveau de l'étape
+          working-directory: codeql-custom-queries-java
+          run: |
+            # Installation des dépendances du pack avant le test
+            codeql pack install
+            # Attribution des droits et exécution
+            chmod +x launchTests.sh updateReadme.sh
+            ./launchTests.sh
+  
   publish-pack:
     runs-on: ubuntu-latest
     needs: analyze
