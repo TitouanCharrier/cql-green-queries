@@ -26,6 +26,8 @@ codeql-custom-queries-java/
 ## Structure du projet
 ```text
 .
+├── README.md
+├── README.md.tmp
 ├── android
 │   ├── java
 │   │   ├── android-java-test.expected
@@ -38,18 +40,16 @@ codeql-custom-queries-java/
 ├── codeql-pack.lock.yml
 ├── codeql-pack.yml
 ├── lang
-│   ├── lang-test.expected
 │   ├── LangTest.java
+│   ├── ManualArrayCopy.java
+│   ├── lang-test.expected
 │   ├── lang-test.ql
 │   ├── manual-array-copy.expected
-│   ├── ManualArrayCopy.java
 │   └── manual-array-copy.ql
 ├── launchTests.sh
 ├── queries-suites
 │   ├── android.qls
 │   └── lang.qls
-├── README.md
-├── README.md.tmp
 └── updateReadme.sh
 
 6 directories, 20 files
