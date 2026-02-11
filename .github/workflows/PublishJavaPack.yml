@@ -46,6 +46,10 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.PACK_PUBLISH_TOKEN }}
         run: |
+          # Récupération du chemin absolu du binaire
+          CODEQL_PATH=${{ steps.install-codeql.outputs.codeql-path }}
+          export PATH=$(dirname $CODEQL_PATH):$PATH
+
           cd codeql-custom-queries-java
           
           # Déterminer le fichier de pack (qlpack.yml ou codeql-pack.yml)
