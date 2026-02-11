@@ -21,6 +21,9 @@ jobs:
     - name: Checkout repository
       uses: actions/checkout@v4
 
+    - name: Install CodeQL CLI
+      uses: github/codeql-action/setup-codeql@v4
+
     - name: Initialize CodeQL
       uses: github/codeql-action/init@v4
       with:
