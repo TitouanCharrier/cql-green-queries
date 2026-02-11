@@ -1,3 +1,0 @@
-|  inner   |                             col1                              |
-+----------+---------------------------------------------------------------+
-| if (...) | Cette instruction 'if' est imbriquée dans un autre bloc 'if'. |
