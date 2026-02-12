@@ -3,6 +3,6 @@ library: false
 warnOnImplicitThis: false
 name: titouancharrier/cql-green-queries-javascript
 extractor : javascript
-version: 1.0.4
+version: 1.0.5
 dependencies:
   codeql/javascript-all: "*"
