@@ -1,6 +1,6 @@
 name: Javascript - Run Tests and Publish CodeQL Pack
 on:
-  workflow_dispatch:  # Bouton manuel
+  workflow_dispatch:
   push:
     branches:
       - main
@@ -8,107 +8,66 @@ on:
       - 'codeql-custom-queries-javascript/**'
 
 jobs:
-
-  analyze:
-    name: Analyze javascript Custom Queries
+  test-and-publish:
+    name: Test and Publish Javascript Pack
     runs-on: ubuntu-latest
-    permissions:
-      actions: read
-      contents: read
-      security-events: write
-
-    steps:
-    - name: Checkout repository
-      uses: actions/checkout@v4
-
-    - name: Initialize CodeQL
-      uses: github/codeql-action/init@v4
-      with:
-        languages: javascript
-        queries: ./codeql-custom-queries-javascript
-
-    - name: Manual Build (javascript Test Files)
-      run: |
-        echo "Compilation des fichiers javascript dans codeql-custom-queries-javascript/test..."
-        find codeql-custom-queries-javascript/test -name "*.js" -o -name "*.jsx" -o -name "*.ts" -o -name "*.tsx" > sources.txt
-        if [ -s sources.txt ]; then
-          echo "Fichiers de test trouvés :"
-          cat sources.txt
-        else
-          echo "Aucun fichier JavaScript/TypeScript de test trouvé."
-          exit 1
-        fi
-
-    - name: Perform CodeQL Analysis
-      uses: github/codeql-action/analyze@v4
-      with:
-        category: "/language:javascript/dir:codeql-custom-queries-javascript/test"
-
-  publish-pack:
-    runs-on: ubuntu-latest
-    needs: analyze
     permissions:
       contents: write
       packages: write
+      security-events: write
+
     steps:
-      - name: Checkout code
+      - name: Checkout repository
         uses: actions/checkout@v4
         with:
           token: ${{ secrets.PACK_PUBLISH_TOKEN }}
-          
+
       - name: Install CodeQL CLI
         uses: github/codeql-action/setup-codeql@v4
-        
+
+      # ÉTAPE 1 : Exécution des tests unitaires CodeQL
+      - name: Run CodeQL Tests
+        run: |
+          codeql test run codeql-custom-queries-javascript/ --layers --threads=0
+
+      # ÉTAPE 2 : Incrémentation et Publication (seulement si les tests passent)
       - name: Increment version and publish
         env:
           GITHUB_TOKEN: ${{ secrets.PACK_PUBLISH_TOKEN }}
         run: |
           cd codeql-custom-queries-javascript
           
-          # Déterminer le fichier de pack (qlpack.yml ou codeql-pack.yml)
-          if [ -f "qlpack.yml" ]; then
-            PACK_FILE="qlpack.yml"
-          elif [ -f "codeql-pack.yml" ]; then
-            PACK_FILE="codeql-pack.yml"
-          else
-            echo "Erreur: Aucun fichier qlpack.yml ou codeql-pack.yml trouvé"
-            exit 1
-          fi
-          
-          echo "Fichier de pack trouvé: $PACK_FILE"
-          
-          # Lire la version actuelle
-          
+          # Identification du fichier de pack
+          [ -f "qlpack.yml" ] && PACK_FILE="qlpack.yml" || PACK_FILE="codeql-pack.yml"
+          if [ ! -f "$PACK_FILE" ]; then echo "Pack file not found"; exit 1; fi
+
+          # Récupération de la version via l'API GitHub Packages
           OWNER="titouancharrier"
           PACKAGE_NAME="cql-green-queries-javascript"
-    
-          LATEST_VERSION=$(curl -s -H "Authorization: Bearer $GITHUB_TOKEN" "https://api.github.com/users/$OWNER/packages/container/$PACKAGE_NAME/versions" | jq -r '.[0].metadata.container.tags[0]')
-    
-          echo "Dernière version publiée : $LATEST_VERSION"
           
-          # Incrémenter la version (patch +1)
-          MAJOR=$(echo $LATEST_VERSION | cut -d. -f1)
-          MINOR=$(echo $LATEST_VERSION | cut -d. -f2)
-          PATCH=$(echo $LATEST_VERSION | cut -d. -f3)
-          NEW_VERSION="$MAJOR.$MINOR.$((PATCH + 1))"
-          echo "Nouvelle version: $NEW_VERSION"
+          LATEST_VERSION=$(curl -s -H "Authorization: Bearer $GITHUB_TOKEN" \
+            "https://api.github.com/users/$OWNER/packages/container/$PACKAGE_NAME/versions" \
+            | jq -r '.[0].metadata.container.tags[0]')
+
+          # Gestion du cas où le package n'existe pas encore
+          if [ "$LATEST_VERSION" == "null" ] || [ -z "$LATEST_VERSION" ]; then
+            NEW_VERSION="1.0.0"
+          else
+            IFS='.' read -r MAJOR MINOR PATCH <<< "$LATEST_VERSION"
+            NEW_VERSION="$MAJOR.$MINOR.$((PATCH + 1))"
+          fi
           
-          # Mettre à jour le fichier de pack
+          echo "Nouvelle version : $NEW_VERSION"
           sed -i "s/^version: .*/version: $NEW_VERSION/" "$PACK_FILE"
           
-          # Vérifier que CodeQL est accessible
-          which codeql || export PATH="$RUNNER_TOOL_CACHE/CodeQL/$(ls $RUNNER_TOOL_CACHE/CodeQL)/x64/codeql:$PATH"
-          codeql version
-          
-          # Installer et publier
+          # Publication
           codeql pack install
           codeql pack publish
-          
+
+      # ÉTAPE 3 : Mise à jour du dépôt
       - name: Commit version update
         run: |
           git config --local user.email "github-actions[bot]@users.noreply.github.com"
           git config --local user.name "github-actions[bot]"
           git add codeql-custom-queries-javascript/
-          git diff --staged --quiet || git commit -m "chore: bump javascript pack version [skip ci]"
-          git pull --rebase origin main
-          git push origin main
+          git diff --staged --quiet || (git commit -m "chore: bump javascript pack version [skip ci]" && git push origin main)
