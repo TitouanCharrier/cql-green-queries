@@ -4,6 +4,7 @@
  * @kind problem
  * @problem.severity recommendation
  * @id java/nested-if-statements
+ * @tags lang
  */
 
 import java

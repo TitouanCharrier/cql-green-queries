@@ -4,8 +4,7 @@
  * @problem.severity recommendation
  * @id java/android-java-test
  * @tags android 
- * java
- * android-java
+ * @tags java
  */
 
 import java
