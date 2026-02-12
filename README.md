@@ -41,6 +41,29 @@ The rules are put in different folders for each language. Each folder have speci
 
 ---
 
+## How to use in your project
+### 1) Download test pack
+Add desired pack in your codeql installation.
+```codeql pack download titouancharrier/cql-green-queries-java```
+
+### 2) Build your Database
+**Case 1**
+You are using Maven / Gradle 
+```codeql database create db --language=java```
+
+**Case 2** 
+You are compiling using javac
+```codeql database create db --language=java --command="javac [your-java-file]"```
+
+### 3) Run the queries / queries suites
+**Case 1** 
+You want to run all the queries in the pack.
+```codeql database analyze db titouancharrier/cql-green-queries-java --format=csv --output=resultats.csv```
+
+**Case 2** 
+You want to run only the queries in a querie suite (.qls)
+```codeql database analyze db titouancharrier/cql-green-queries-java:queries-suites/android.qls --format=csv  --output=resultats.csv```
+
 ## How to use in your Github
 
 To use copy this code into a Github Action. Precise which language (java by default).
