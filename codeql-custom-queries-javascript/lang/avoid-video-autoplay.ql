@@ -5,8 +5,7 @@
  * @problem.severity recommendation
  * @precision high
  * @id js/avoid-video-autoplay
- * @tags efficiency
- * sustainability
+ * @tags lang
  */
 
 import javascript

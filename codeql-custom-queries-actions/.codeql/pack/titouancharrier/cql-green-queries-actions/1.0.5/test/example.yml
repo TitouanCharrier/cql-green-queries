@@ -1,8 +1,0 @@
-name: test
-on: [push]
-
-jobs:
-  check-version:
-    runs-on: ubuntu-latest
-    steps:
-      - run: echo "Hello World"
