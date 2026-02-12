@@ -1,2 +1,1 @@
 | avoid-high-accuracy-gps.ts:2:5:2:28 | enableH ... y: true | Green IT: Avoid 'enableHighAccuracy: true' to reduce battery drain unless meter-level precision is strictly required for the core user experience. |
-| avoid-high-accuracy-gps.ts:13:5:13:28 | enableH ... y: true | Green IT: Avoid 'enableHighAccuracy: true' to reduce battery drain unless meter-level precision is strictly required for the core user experience. |
