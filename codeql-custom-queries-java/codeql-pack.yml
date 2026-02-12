@@ -3,6 +3,6 @@ library: false
 warnOnImplicitThis: false
 name: titouancharrier/cql-green-queries-java
 extractor: java
-version: 1.0.16
+version: 1.0.17
 dependencies:
   codeql/java-all: ^7.8.4
