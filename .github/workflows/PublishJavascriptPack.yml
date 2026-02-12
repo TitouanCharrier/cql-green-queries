@@ -21,12 +21,15 @@ jobs:
     - name: Checkout repository
       uses: actions/checkout@v4
 
-    # Initialise CodeQL v4 avec tes requêtes personnalisées
     - name: Initialize CodeQL
       uses: github/codeql-action/init@v4
       with:
         languages: javascript
-        queries: ./code-custom-queries-javascript
+        # Utiliser cette syntaxe permet d'être plus précis
+        config: |
+          queries:
+            - name: My Custom Queries
+              uses: ./code-custom-queries-javascript
 
     - name: Autobuild
       uses: github/codeql-action/autobuild@v4
