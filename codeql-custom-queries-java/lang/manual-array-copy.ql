@@ -5,8 +5,7 @@
  * @problem.severity recommendation
  * @precision high
  * @id java/manual-array-copy
- * @tags efficiency
- * maintainability
+ * @tags lang
  */
 
 import java

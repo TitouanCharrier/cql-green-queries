@@ -1,0 +1,5 @@
+- description: "Requètes relatives au language"
+- qlpack: titouancharrier/cql-green-queries-java
+- include:
+    tags:
+      - lang
