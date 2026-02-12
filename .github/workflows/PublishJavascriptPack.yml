@@ -1,15 +1,15 @@
-name: "CodeQL Custom Analysis"
+name: "CodeQL JavaScript Custom Analysis"
 
 on:
   push:
     branches: [ "main" ]
   pull_request:
     branches: [ "main" ]
-  workflow_dispatch: # Ajouté comme demandé
+  workflow_dispatch:
 
 jobs:
   analyze:
-    name: Analyze
+    name: Analyze JavaScript
     runs-on: ubuntu-latest
     permissions:
       actions: read
@@ -24,13 +24,12 @@ jobs:
       uses: github/codeql-action/init@v4
       with:
         languages: javascript
-        # Utiliser le bloc 'config' est la méthode la plus robuste 
-        # pour pointer vers des dossiers locaux en v4
-        config: |
-          queries:
-            - name: My Local Queries
-              uses: ./code-custom-queries-javascript/
+        # On pointe directement sur le pack JS. 
+        # CodeQL va compiler automatiquement les requêtes dans /lang
+        queries: ./codeql-custom-queries-javascript
 
+    # Le JavaScript ne nécessite généralement pas de build complexe,
+    # l'autobuild est suffisant pour mapper les fichiers .js/.tsx
     - name: Autobuild
       uses: github/codeql-action/autobuild@v4
 
