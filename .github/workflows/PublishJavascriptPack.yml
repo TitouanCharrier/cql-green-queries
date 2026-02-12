@@ -1,4 +1,4 @@
-name: "CodeQL Custom Queries Unit Tests"
+name: "CodeQL JavaScript Unit Tests"
 
 on:
   push:
@@ -8,18 +8,22 @@ on:
   workflow_dispatch:
 
 jobs:
-  test-queries:
-    name: Run Unit Tests
+  unit-tests:
+    name: Execute CodeQL Tests
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
 
     steps:
-    - name: Checkout repository
-      uses: actions/checkout@v4
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
-    # On installe la CLI CodeQL sans initialiser de base de données
-    - name: Setup CodeQL CLI
-      uses: github/codeql-action/setup-codeql@v4
+      # Étape CRUCIALE : installe et ajoute le binaire 'codeql' au PATH
+      - name: Setup CodeQL CLI
+        uses: github/codeql-action/setup-codeql@v3 # Utilise la v3 pour la stabilité du binaire
 
-    - name: Run CodeQL Tests
-      run: |
-        codeql test run ./codeql-custom-queries-javascript --format=text
+      - name: Run CodeQL Tests
+        id: run-tests
+        run: |
+          echo "Running tests for JavaScript pack..."
+          codeql test run ./codeql-custom-queries-javascript --format=text
