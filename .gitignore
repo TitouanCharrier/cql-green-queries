@@ -1,3 +1,4 @@
 .vscode
 db
 .codeql
+lang.testproj
