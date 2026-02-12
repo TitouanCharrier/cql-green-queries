@@ -29,18 +29,14 @@ codeql-custom-queries-java/
 ├── README.md
 ├── README.md.tmp
 ├── android
-│   └── java
-│       ├── android-java-test.expected
-│       ├── android-java-test.java
-│       └── android-java-test.ql
+│   ├── AvoidKeepScreenOn.java
+│   ├── avoid-keep-screen-on.expected
+│   └── avoid-keep-screen-on.ql
 ├── cleanActual.sh
 ├── codeql-pack.lock.yml
 ├── codeql-pack.yml
 ├── lang
-│   ├── LangTest.java
 │   ├── ManualArrayCopy.java
-│   ├── lang-test.expected
-│   ├── lang-test.ql
 │   ├── manual-array-copy.expected
 │   └── manual-array-copy.ql
 ├── launchTests.sh
@@ -49,5 +45,5 @@ codeql-custom-queries-java/
 │   └── lang.qls
 └── updateReadme.sh
 
-5 directories, 18 files
+4 directories, 15 files
 ```
