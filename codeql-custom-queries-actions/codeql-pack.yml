@@ -1,5 +1,5 @@
 name: titouancharrier/cql-green-queries-actions
-version: 1.0.6
+version: 1.0.7
 groups: yaml
 dependencies:
   codeql/actions-all: "*"
