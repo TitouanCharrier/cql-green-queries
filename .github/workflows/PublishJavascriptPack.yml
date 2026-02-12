@@ -5,7 +5,7 @@ on:
     branches: [ "main" ]
   pull_request:
     branches: [ "main" ]
-  # Permet le lancement manuel depuis l'onglet "Actions"
+  # Déclenchement manuel ajouté
   workflow_dispatch:
 
 jobs:
@@ -21,16 +21,15 @@ jobs:
     - name: Checkout repository
       uses: actions/checkout@v4
 
+    # Initialise CodeQL avec le chemin absolu vers tes requêtes
     - name: Initialize CodeQL
       uses: github/codeql-action/init@v4
       with:
         languages: javascript
-        # Utiliser cette syntaxe permet d'être plus précis
-        config: |
-          queries:
-            - name: My Custom Queries
-              uses: ./code-custom-queries-javascript
+        # Utilisation de la variable workspace pour éviter les erreurs de chemin
+        queries: ${{ github.workspace }}/code-custom-queries-javascript
 
+    # Tentative de build automatique pour le JavaScript/TypeScript
     - name: Autobuild
       uses: github/codeql-action/autobuild@v4
 
