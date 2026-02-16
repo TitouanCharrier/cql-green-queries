@@ -26,24 +26,25 @@ codeql-custom-queries-java/
 ## Structure du projet
 ```text
 .
-├── README.md
-├── README.md.tmp
 ├── android
-│   ├── AvoidKeepScreenOn.java
 │   ├── avoid-keep-screen-on.expected
+│   ├── AvoidKeepScreenOn.java
 │   └── avoid-keep-screen-on.ql
 ├── cleanActual.sh
 ├── codeql-pack.lock.yml
 ├── codeql-pack.yml
 ├── lang
-│   ├── ManualArrayCopy.java
 │   ├── manual-array-copy.expected
+│   ├── ManualArrayCopy.java
+│   ├── ManualArrayCopy.kt
 │   └── manual-array-copy.ql
 ├── launchTests.sh
 ├── queries-suites
 │   ├── android.qls
 │   └── lang.qls
+├── README.md
+├── README.md.tmp
 └── updateReadme.sh
 
-4 directories, 15 files
+4 directories, 16 files
 ```
