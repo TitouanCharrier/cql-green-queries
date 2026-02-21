@@ -1,0 +1,9 @@
+---
+library: false
+warnOnImplicitThis: false
+name: getting-started/codeql-extra-queries-csharp
+version: 1.0.0
+extractor: csharp
+buildMode: none
+dependencies:
+  codeql/csharp-all: ^5.4.7
