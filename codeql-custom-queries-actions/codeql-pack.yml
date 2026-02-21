@@ -1,6 +1,6 @@
 ---
 name: titouancharrier/cql-green-queries-actions
-version: 1.0.7
+version: 1.0.8
 groups: yaml
 extractor: actions
 dependencies:
