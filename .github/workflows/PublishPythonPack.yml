@@ -1,113 +1,100 @@
-name: Python - Run Tests and Publish CodeQL Pack
+name: "Python - Run Tests and Publish CodeQL Pack"
+
 on:
-  workflow_dispatch:  # Bouton manuel
+  workflow_dispatch:
   push:
-    branches:
-      - main
+    branches: [ "main" ]
+    paths:
+      - 'codeql-custom-queries-python/**'
+  pull_request:
     paths:
       - 'codeql-custom-queries-python/**'
 
 jobs:
-
-  analyze:
-    name: Analyze python Custom Queries
+  test:
+    name: Run Tests
     runs-on: ubuntu-latest
     permissions:
-      actions: read
       contents: read
-      security-events: write
 
     steps:
-    - name: Checkout repository
-      uses: actions/checkout@v4
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
-    - name: Initialize CodeQL
-      uses: github/codeql-action/init@v4
-      with:
-        languages: python
-        queries: ./codeql-custom-queries-python
+      - name: Install CodeQL CLI
+        id: install-codeql
+        uses: github/codeql-action/setup-codeql@v4
 
-    - name: Manual Build (python Test Files)
-      run: |
-        echo "Compilation des fichiers python dans codeql-custom-queries-python/test..."
-         find codeql-custom-queries-python/test -name "*.py" > sources.txt
-        if [ -s sources.txt ]; then
-          echo "Fichiers trouvés, CodeQL va procéder à l'analyse."
-        else
-          echo "Aucun fichier Python de test trouvé."
-          exit 1
-        fi
+      - name: Run Tests
+        working-directory: codeql-custom-queries-python
+        run: |
+          export PATH="$(dirname ${{ steps.install-codeql.outputs.codeql-path }}):$PATH"
+          
+          echo "Installation des dépendances du pack..."
+          codeql pack install
+          
+          echo "Exécution des tests unitaires CodeQL..."
+          codeql test run . --format=text
 
-    - name: Perform CodeQL Analysis
-      uses: github/codeql-action/analyze@v4
-      with:
-        category: "/language:python/dir:codeql-custom-queries-python/test"
-
-  publish-pack:
+  publish:
+    name: Publish Pack
     runs-on: ubuntu-latest
-    needs: analyze
+    needs: test
+    if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
     permissions:
-      contents: write
       packages: write
+      contents: write
+
     steps:
-      - name: Checkout code
+      - name: Checkout repository
         uses: actions/checkout@v4
         with:
           token: ${{ secrets.PACK_PUBLISH_TOKEN }}
-          
+
       - name: Install CodeQL CLI
+        id: install-codeql
         uses: github/codeql-action/setup-codeql@v4
-        
+
       - name: Increment version and publish
         env:
           GITHUB_TOKEN: ${{ secrets.PACK_PUBLISH_TOKEN }}
         run: |
+          export PATH="$(dirname ${{ steps.install-codeql.outputs.codeql-path }}):$PATH"
           cd codeql-custom-queries-python
           
-          # Déterminer le fichier de pack (qlpack.yml ou codeql-pack.yml)
-          if [ -f "qlpack.yml" ]; then
-            PACK_FILE="qlpack.yml"
-          elif [ -f "codeql-pack.yml" ]; then
-            PACK_FILE="codeql-pack.yml"
-          else
-            echo "Erreur: Aucun fichier qlpack.yml ou codeql-pack.yml trouvé"
-            exit 1
-          fi
+          # 1. Détection du fichier de pack
+          PACK_FILE=$(ls qlpack.yml 2>/dev/null || ls codeql-pack.yml 2>/dev/null)
+          if [ -z "$PACK_FILE" ]; then echo "Pack file not found"; exit 1; fi
           
-          echo "Fichier de pack trouvé: $PACK_FILE"
-          
-          # Lire la version actuelle
-          
+          # 2. Récupération de la version actuelle sur le GitHub Container Registry
           OWNER="titouancharrier"
           PACKAGE_NAME="cql-green-queries-python"
-    
-          LATEST_VERSION=$(curl -s -H "Authorization: Bearer $GITHUB_TOKEN" "https://api.github.com/users/$OWNER/packages/container/$PACKAGE_NAME/versions" | jq -r '.[0].metadata.container.tags[0]')
-    
-          echo "Dernière version publiée : $LATEST_VERSION"
           
-          # Incrémenter la version (patch +1)
-          MAJOR=$(echo $LATEST_VERSION | cut -d. -f1)
-          MINOR=$(echo $LATEST_VERSION | cut -d. -f2)
-          PATCH=$(echo $LATEST_VERSION | cut -d. -f3)
-          NEW_VERSION="$MAJOR.$MINOR.$((PATCH + 1))"
-          echo "Nouvelle version: $NEW_VERSION"
+          RESPONSE=$(curl -s -H "Authorization: Bearer $GITHUB_TOKEN" \
+            "https://api.github.com/users/$OWNER/packages/container/$PACKAGE_NAME/versions")
           
-          # Mettre à jour le fichier de pack
+          LATEST_VERSION=$(echo "$RESPONSE" | jq -r '.[0].metadata.container.tags[0]' 2>/dev/null)
+
+          if [ "$LATEST_VERSION" == "null" ] || [ -z "$LATEST_VERSION" ]; then
+            NEW_VERSION="1.0.0"
+          else
+            echo "Dernière version trouvée : $LATEST_VERSION"
+            MAJOR=$(echo $LATEST_VERSION | cut -d. -f1)
+            MINOR=$(echo $LATEST_VERSION | cut -d. -f2)
+            PATCH=$(echo $LATEST_VERSION | cut -d. -f3)
+            NEW_VERSION="$MAJOR.$MINOR.$((PATCH + 1))"
+          fi
+          
+          echo "Nouvelle version déterminée : $NEW_VERSION"
+          
           sed -i "s/^version: .*/version: $NEW_VERSION/" "$PACK_FILE"
           
-          # Vérifier que CodeQL est accessible
-          which codeql || export PATH="$RUNNER_TOOL_CACHE/CodeQL/$(ls $RUNNER_TOOL_CACHE/CodeQL)/x64/codeql:$PATH"
-          codeql version
-          
-          # Installer et publier
-          codeql pack install
+          echo "Publication du pack sur GitHub Packages..."
           codeql pack publish
-          
+
       - name: Commit version update
         run: |
           git config --local user.email "github-actions[bot]@users.noreply.github.com"
           git config --local user.name "github-actions[bot]"
           git add codeql-custom-queries-python/
-          git diff --staged --quiet || git commit -m "chore: bump python pack version [skip ci]"
-          git pull --rebase origin main
-          git push origin main
+          git diff --staged --quiet || (git commit -m "chore: bump python pack version to match registry [skip ci]" && git push origin main)
