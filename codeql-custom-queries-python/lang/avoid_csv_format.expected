@@ -1,0 +1,3 @@
+| avoid_csv_format.py:8:10:8:46 | Attribute() | Use Parquet or Feather format instead of calling read_csv. |
+| avoid_csv_format.py:17:5:17:63 | Attribute() | Use Parquet or Feather format instead of calling to_csv. |
+| avoid_csv_format.py:21:15:21:50 | StringLiteral | Use Parquet or Feather format instead of CSV files. |

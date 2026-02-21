@@ -4,7 +4,7 @@
  * @kind problem
  * @problem.severity recommendation
  * @precision high
- * @id py/avoid-csv-format
+ * @id py/avoid_csv_format
  * @tags efficiency
  * sustainability
  */
