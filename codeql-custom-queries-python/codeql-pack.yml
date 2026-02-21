@@ -3,6 +3,6 @@ library: false
 warnOnImplicitThis: false
 name: titouancharrier/cql-green-queries-python
 extractor: python
-version: 1.0.7
+version: 1.0.8
 dependencies:
   codeql/python-all: "*"
