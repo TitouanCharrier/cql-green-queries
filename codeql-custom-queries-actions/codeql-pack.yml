@@ -1,6 +1,7 @@
+---
 name: titouancharrier/cql-green-queries-actions
 version: 1.0.7
 groups: yaml
+extractor: actions
 dependencies:
   codeql/actions-all: "*"
-exclude: [test/**, CHANGELOG.md, README.md]
