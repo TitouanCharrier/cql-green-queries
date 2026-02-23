@@ -70,16 +70,14 @@ To use copy this code into a Github Action. Precise which language (java by defa
 
 ```yaml
 name: "CodeQL Analysis"
-
 env:
-  TARGET_LANGUAGE: "java" # To change depending of your project
-
+  TARGET_LANGUAGE: "java"
 on:
+  workflow_dispatch: 
   push:
     branches: [ "main" ]
   pull_request:
     branches: [ "main" ]
-
 jobs:
   analyze:
     name: Analyze
@@ -88,24 +86,19 @@ jobs:
       actions: read
       contents: read
       security-events: write
-
     steps:
     - name: Checkout repository
       uses: actions/checkout@v4
-
     - name: Initialize CodeQL
       uses: github/codeql-action/init@v4
       with:
         languages: ${{ env.TARGET_LANGUAGE }}
+        build-mode: none
         packs: titouancharrier/cql-green-queries-${{ env.TARGET_LANGUAGE }}
-
-    - name: Autobuild
-      uses: github/codeql-action/autobuild@v4
-
     - name: Perform CodeQL Analysis
       uses: github/codeql-action/analyze@v4
       with:
-        category: "/language:${{ env.TARGET_LANGUAGE }}"
+        category: "Save the polar bear"
 
 ```
 
