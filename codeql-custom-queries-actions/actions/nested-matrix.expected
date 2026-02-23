@@ -1,0 +1,2 @@
+| nested-matrix.yml:7:5:26:2 | Job: build | Le job 'build' contient une matrice imbriqu\u00e9e. |
+| nested-matrix.yml:27:5:44:52 | Job: test | Le job 'test' contient une matrice imbriqu\u00e9e. |

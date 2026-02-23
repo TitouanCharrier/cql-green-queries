@@ -8,11 +8,13 @@
  */
 
 import actions
+import codeql.actions.ast.internal.Yaml
+import codeql.actions.ast.internal.Ast
 
-from Job j, Strategy s, MatrixExpression outerMatrix, MatrixExpression innerMatrix
+from Job j, StrategyImpl s, YamlMapping matrixNode, YamlMapping innerMatrix
 where
-  s = j.getStrategy() and
-  outerMatrix = s.getAChildNode() and
-  innerMatrix = outerMatrix.getAChildNode+() and
-  innerMatrix != outerMatrix
-select j, "Job '" + j.getId() + "' contain a nested matrix."
+  s.getParentNode() = j and
+  matrixNode = s.getNode().lookup("matrix") and
+  innerMatrix = matrixNode.getAChildNode+() and
+  exists(innerMatrix.lookup("matrix"))
+select j, "Le job '" + j.getId() + "' contient une matrice imbriquée."
