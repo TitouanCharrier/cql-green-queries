@@ -2,7 +2,7 @@
 library: false
 warnOnImplicitThis: false
 name: titouancharrier/cql-green-queries-csharp
-version: 1.0.0
+version: 1.0.1
 extractor: csharp
 buildMode: none
 dependencies:
