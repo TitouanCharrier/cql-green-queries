@@ -1,7 +1,7 @@
 ---
 library: false
 warnOnImplicitThis: false
-name: getting-started/codeql-extra-queries-csharp
+name: titouancharrier/cql-green-queries-csharp
 version: 1.0.0
 extractor: csharp
 buildMode: none
