@@ -92,7 +92,7 @@ jobs:
       uses: github/codeql-action/init@v4
       with:
         languages: ${{ env.TARGET_LANGUAGE }}
-        queries: ./qlpack/queries-suite.qls
+        #queries: ./qlpack/queries-suite.qls
         build-mode: none
         packs: titouancharrier/cql-green-queries-${{ env.TARGET_LANGUAGE }}
     - name: Perform CodeQL Analysis
