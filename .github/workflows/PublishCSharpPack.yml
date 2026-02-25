@@ -1,0 +1,109 @@
+name: Csharp - Run Tests and Publish CodeQL Pack
+on:
+  workflow_dispatch:  # Bouton manuel
+  push:
+    branches:
+      - main
+    paths:
+      - 'codeql-custom-queries-csharp/**'
+jobs:
+  analyze:
+    name: Analyze csharp Custom Queries
+    runs-on: ubuntu-latest
+    permissions:
+      actions: read
+      contents: read
+      security-events: write
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+    - name: Initialize CodeQL
+      uses: github/codeql-action/init@v4
+      with:
+        languages: csharp
+        queries: ./codeql-custom-queries-csharp
+    - name: Manual Build (csharp Test Files)
+      run: |
+        echo "Compilation des fichiers C# dans codeql-custom-queries-csharp/test..."
+        find codeql-custom-queries-csharp/test -name "*.cs" > sources.txt
+        if [ -s sources.txt ]; then
+          # Cherche un .csproj dans le dossier test, sinon compile directement avec mcs
+          CSPROJ=$(find codeql-custom-queries-csharp/test -name "*.csproj" | head -1)
+          if [ -n "$CSPROJ" ]; then
+            echo "Projet trouvé: $CSPROJ"
+            dotnet build "$CSPROJ"
+          else
+            echo "Aucun .csproj trouvé, compilation directe avec mcs..."
+            mcs $(cat sources.txt | tr '\n' ' ') -out:test_output.exe
+          fi
+        else
+          echo "Aucun fichier source C# trouvé."
+          exit 1
+        fi
+    - name: Perform CodeQL Analysis
+      uses: github/codeql-action/analyze@v4
+      with:
+        category: "/language:csharp/dir:codeql-custom-queries-csharp/test"
+  publish-pack:
+    runs-on: ubuntu-latest
+    needs: analyze
+    permissions:
+      contents: write
+      packages: write
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.PACK_PUBLISH_TOKEN }}
+          
+      - name: Install CodeQL CLI
+        uses: github/codeql-action/setup-codeql@v4
+        
+      - name: Increment version and publish
+        env:
+          GITHUB_TOKEN: ${{ secrets.PACK_PUBLISH_TOKEN }}
+        run: |
+          cd codeql-custom-queries-csharp
+          
+          # Déterminer le fichier de pack (qlpack.yml ou codeql-pack.yml)
+          if [ -f "qlpack.yml" ]; then
+            PACK_FILE="qlpack.yml"
+          elif [ -f "codeql-pack.yml" ]; then
+            PACK_FILE="codeql-pack.yml"
+          else
+            echo "Erreur: Aucun fichier qlpack.yml ou codeql-pack.yml trouvé"
+            exit 1
+          fi
+          
+          echo "Fichier de pack trouvé: $PACK_FILE"
+          
+          # Lire la version actuelle
+          OWNER="titouancharrier"
+          PACKAGE_NAME="cql-green-queries-csharp"
+    
+          LATEST_VERSION=$(curl -s -H "Authorization: Bearer $GITHUB_TOKEN" "https://api.github.com/users/$OWNER/packages/container/$PACKAGE_NAME/versions" | jq -r '.[0].metadata.container.tags[0]')
+    
+          echo "Dernière version publiée : $LATEST_VERSION"
+          
+          MAJOR=$(echo $LATEST_VERSION | cut -d. -f1)
+          MINOR=$(echo $LATEST_VERSION | cut -d. -f2)
+          PATCH=$(echo $LATEST_VERSION | cut -d. -f3)
+          NEW_VERSION="$MAJOR.$MINOR.$((PATCH + 1))"
+          echo "Nouvelle version: $NEW_VERSION"
+          
+          sed -i "s/^version: .*/version: $NEW_VERSION/" "$PACK_FILE"
+          
+          which codeql || export PATH="$RUNNER_TOOL_CACHE/CodeQL/$(ls $RUNNER_TOOL_CACHE/CodeQL)/x64/codeql:$PATH"
+          codeql version
+          
+          codeql pack install
+          codeql pack publish
+          
+      - name: Commit version update
+        run: |
+          git config --local user.email "github-actions[bot]@users.noreply.github.com"
+          git config --local user.name "github-actions[bot]"
+          git add codeql-custom-queries-csharp/
+          git diff --staged --quiet || git commit -m "chore: bump csharp pack version [skip ci]"
+          git pull --rebase origin main
+          git push origin main
