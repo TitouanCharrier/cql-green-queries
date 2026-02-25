@@ -46,7 +46,7 @@ The rules are put in different folders for each language. Each folder have speci
 ### TUI for local projects
 You can run inside your project's folder
 ```
-curl --fail --remote-name --location --continue-at - https://github.com/TitouanCharrier/cql-green-queries/blob/main/run_green_queries.sh
+curl --fail --remote-name --location https://raw.githubusercontent.com/TitouanCharrier/cql-green-queries/main/run_green_queries.sh
 chmod +x run_green_queries.sh
 ```
 and
