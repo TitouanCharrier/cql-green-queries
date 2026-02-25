@@ -48,7 +48,7 @@ Add desired pack in your codeql installation.
 ### 2) Build your Database
 **Case 1**
 You are using Maven / Gradle 
-```codeql database create db --language=java```
+```codeql database create db --language=java --build-mode=none```
 
 **Case 2** 
 You are compiling using javac
@@ -92,6 +92,7 @@ jobs:
       uses: github/codeql-action/init@v4
       with:
         languages: ${{ env.TARGET_LANGUAGE }}
+        queries: ./qlpack/queries-suite.qls
         build-mode: none
         packs: titouancharrier/cql-green-queries-${{ env.TARGET_LANGUAGE }}
     - name: Perform CodeQL Analysis
