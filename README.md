@@ -6,24 +6,22 @@
 
 ---
 Java/Kotlin :
-
 [![Publish CodeQL Java Pack](https://github.com/TitouanCharrier/cql-green-queries/actions/workflows/PublishJavaPack.yml/badge.svg)](https://github.com/TitouanCharrier/cql-green-queries/actions/workflows/PublishJavaPack.yml)
 
 Python:
-
 [![Publish CodeQL Python Pack](https://github.com/TitouanCharrier/cql-green-queries/actions/workflows/PublishPythonPack.yml/badge.svg)](https://github.com/TitouanCharrier/cql-green-queries/actions/workflows/PublishPythonPack.yml)
 
 C/C++ :
-
 [![Publish CodeQL Cpp Pack](https://github.com/TitouanCharrier/cql-green-queries/actions/workflows/PublishCppPack.yml/badge.svg)](https://github.com/TitouanCharrier/cql-green-queries/actions/workflows/PublishCppPack.yml)
 
 Javascript/TypeScript :
-
 [![Publish CodeQL JavaScript Pack](https://github.com/TitouanCharrier/cql-green-queries/actions/workflows/PublishJavascriptPack.yml/badge.svg)](https://github.com/TitouanCharrier/cql-green-queries/actions/workflows/PublishJavascriptPack.yml)
 
 Actions/YAML :
-
 [![Publish CodeQL Actions Pack](https://github.com/TitouanCharrier/cql-green-queries/actions/workflows/PublishActionsPack.yml/badge.svg)](https://github.com/TitouanCharrier/cql-green-queries/actions/workflows/PublishActionsPack.yml)
+
+C# :
+[![C# - Run Tests and Publish CodeQL Pack](https://github.com/TitouanCharrier/cql-green-queries/actions/workflows/PublishCSharpPack.yml/badge.svg)](https://github.com/TitouanCharrier/cql-green-queries/actions/workflows/PublishCSharpPack.yml)
 
 ---
 
