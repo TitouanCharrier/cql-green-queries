@@ -451,6 +451,10 @@ generate_qls() {
     local tags_available=("$@")
     local output_file="custom-queries-suite.qls"
 
+    echo "generating database in current folder"
+    codeql database create gsf-green-queries-db --language=${language} --build-mode=none  
+    echo "database created"
+
     echo -e "\e[4m[GSF GREEN QUERIES] -- Select tags to run, none to run all\e[24m"
     
     # Appel du widget avec tous les tags restants
@@ -533,9 +537,7 @@ case ${options[${UI_WIDGET_RC}]} in
 esac
 
 echo --
-echo "generating database in current folder"
-codeql database create gsf-green-queries-db --language=java-kotlin --build-mode=none
-echo "database created"
+
 
 
 echo -e "\e[4m [GSF GREEN QUERIES] Queries done, want to cleanup db and qls ?\e[24m"
