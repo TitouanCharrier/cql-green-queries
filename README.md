@@ -36,6 +36,7 @@ The rules are put in different folders for each language. Each folder have speci
 * **Javascript/Typescript**
 * **Python**
 * **Action/Yml**
+* **C#**
 
 ---
 
