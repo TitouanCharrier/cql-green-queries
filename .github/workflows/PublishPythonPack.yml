@@ -1,27 +1,32 @@
-name: "C# - Run Tests and Publish CodeQL Pack"
+name: "Python - Run Tests and Publish CodeQL Pack"
+
 on:
   workflow_dispatch:
   push:
     branches: [ "main" ]
     paths:
-      - 'codeql-custom-queries-csharp/**'
+      - 'codeql-custom-queries-python/**'
   pull_request:
     paths:
-      - 'codeql-custom-queries-csharp/**'
+      - 'codeql-custom-queries-python/**'
+
 jobs:
   test:
     name: Run Tests
     runs-on: ubuntu-latest
     permissions:
       contents: read
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+
       - name: Install CodeQL CLI
         id: install-codeql
         uses: github/codeql-action/setup-codeql@v4
+
       - name: Run Tests
-        working-directory: codeql-custom-queries-csharp
+        working-directory: codeql-custom-queries-python
         run: |
           export PATH="$(dirname ${{ steps.install-codeql.outputs.codeql-path }}):$PATH"
           
@@ -30,6 +35,7 @@ jobs:
           
           echo "Exécution des tests unitaires CodeQL..."
           codeql test run . --format=text
+
   publish:
     name: Publish Pack
     runs-on: ubuntu-latest
@@ -38,20 +44,23 @@ jobs:
     permissions:
       packages: write
       contents: write
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
           token: ${{ secrets.PACK_PUBLISH_TOKEN }}
+
       - name: Install CodeQL CLI
         id: install-codeql
         uses: github/codeql-action/setup-codeql@v4
+
       - name: Increment version and publish
         env:
           GITHUB_TOKEN: ${{ secrets.PACK_PUBLISH_TOKEN }}
         run: |
           export PATH="$(dirname ${{ steps.install-codeql.outputs.codeql-path }}):$PATH"
-          cd codeql-custom-queries-csharp
+          cd codeql-custom-queries-python
           
           # 1. Détection du fichier de pack
           PACK_FILE=$(ls qlpack.yml 2>/dev/null || ls codeql-pack.yml 2>/dev/null)
@@ -59,12 +68,13 @@ jobs:
           
           # 2. Récupération de la version actuelle sur le GitHub Container Registry
           OWNER="titouancharrier"
-          PACKAGE_NAME="cql-green-queries-csharp"
+          PACKAGE_NAME="cql-green-queries-python"
           
           RESPONSE=$(curl -s -H "Authorization: Bearer $GITHUB_TOKEN" \
             "https://api.github.com/users/$OWNER/packages/container/$PACKAGE_NAME/versions")
           
           LATEST_VERSION=$(echo "$RESPONSE" | jq -r '.[0].metadata.container.tags[0]' 2>/dev/null)
+
           if [ "$LATEST_VERSION" == "null" ] || [ -z "$LATEST_VERSION" ]; then
             NEW_VERSION="1.0.0"
           else
@@ -81,9 +91,10 @@ jobs:
           
           echo "Publication du pack sur GitHub Packages..."
           codeql pack publish
+
       - name: Commit version update
         run: |
           git config --local user.email "github-actions[bot]@users.noreply.github.com"
           git config --local user.name "github-actions[bot]"
-          git add codeql-custom-queries-csharp/
-          git diff --staged --quiet || (git commit -m "chore: bump csharp pack version to match registry [skip ci]" && git push origin main)
+          git add codeql-custom-queries-python/
+          git diff --staged --quiet || (git commit -m "chore: bump python pack version to match registry [skip ci]" && git push origin main)
