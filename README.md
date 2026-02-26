@@ -3,6 +3,7 @@
 > Edit Code of conduct to add the mean of contact in case of problem.
 
 # Green Code Scan Rules
+issue build mode none dosent work for kotlin: https://docs.github.com/en/code-security/reference/code-scanning/troubleshoot-analysis-errors/kotlin-detected-in-no-build
 
 ---
 Java/Kotlin :
@@ -40,12 +41,25 @@ The rules are put in different folders for each language. Each folder have speci
 
 ---
 
-## How to use in your project
-### 1) Download test pack
+## Usage
+
+### TUI for local projects
+You can run inside your project's folder
+```
+curl --fail --remote-name --location https://raw.githubusercontent.com/TitouanCharrier/cql-green-queries/main/run_green_queries.sh
+chmod +x run_green_queries.sh
+```
+and
+
+```./run_green_queries.sh```
+
+
+### Manual run for local projects
+#### 1) Download test pack
 Add desired pack in your codeql installation.
 ```codeql pack download titouancharrier/cql-green-queries-java```
 
-### 2) Build your Database
+#### 2) Build your Database
 **Case 1** 
 You don't want to use the compilation
 ```codeql database create db --language=java --build-mode=none```
@@ -58,7 +72,7 @@ You are using Maven / Gradle
 You are compiling using javac
 ```codeql database create db --language=java --command="javac [your-java-file]"```
 
-### 3) Run the queries / queries suites
+#### 3) Run the queries / queries suites
 **Case 1** 
 You want to run all the queries in the pack.
 ```codeql database analyze db titouancharrier/cql-green-queries-java --format=csv --output=resultats.csv```
