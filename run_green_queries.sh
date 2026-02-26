@@ -481,7 +481,7 @@ EOF
         codeql database analyze gsf-green-queries-db ./custom-queries-suite.qls --format=csv --output=resultats.csv 
 
     else 
-        codeql database analyze gsf-green-queries-db titouancharrier/cql-green-queries-java --format=csv --output=resultats.csv
+        codeql database analyze gsf-green-queries-db titouancharrier/cql-green-queries-${language} --format=csv --output=resultats.csv
 
     fi
 
