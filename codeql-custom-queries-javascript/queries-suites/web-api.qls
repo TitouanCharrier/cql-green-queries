@@ -1,6 +1,0 @@
-- description: "Web API Queries"
-- qlpack: titouancharrier/cql-green-queries-javascript
-- include:
-    tags:
-      - lang
-      - web-api

@@ -1,3 +1,0 @@
-| AvoidVideoAutoPlay.js:8:13:11:20 | <video  ... /video> | Avoid 'autoPlay' or 'preload="auto/metadata"' on video elements to reduce environmental footprint. |
-| AvoidVideoAutoPlay.js:17:13:20:20 | <video  ... /video> | Avoid 'autoPlay' or 'preload="auto/metadata"' on video elements to reduce environmental footprint. |
-| AvoidVideoAutoPlay.js:26:13:29:20 | <video  ... /video> | Avoid 'autoPlay' or 'preload="auto/metadata"' on video elements to reduce environmental footprint. |
