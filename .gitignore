@@ -1,5 +1,4 @@
 .vscode
-db
 .codeql
 *.testproj
 *.class
