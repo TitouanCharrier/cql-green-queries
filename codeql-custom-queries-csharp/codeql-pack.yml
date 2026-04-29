@@ -1,6 +1,6 @@
 ---
 library: false
-name: titouancharrier/csharp-queries
+name: titouancharrier/cql-green-queries-csharp
 version: 1.0.1
 extractor: csharp
 groups: csharp

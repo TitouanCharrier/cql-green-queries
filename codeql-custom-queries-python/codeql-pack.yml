@@ -1,6 +1,6 @@
 ---
 library: false
-name: titouancharrier/python-queries
+name: titouancharrier/cql-green-queries-python
 version: 1.0.1
 extractor: python
 groups: python

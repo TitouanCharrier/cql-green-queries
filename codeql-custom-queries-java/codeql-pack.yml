@@ -1,6 +1,6 @@
 ---
 library: false
-name: titouancharrier/java-queries
+name: titouancharrier/cql-green-queries-java
 version: 1.0.0
 extractor: java
 groups: java

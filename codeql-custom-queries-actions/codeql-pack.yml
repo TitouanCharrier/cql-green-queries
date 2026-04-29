@@ -1,6 +1,6 @@
 ---
 library: false
-name: titouancharrier/actions-queries
+name: titouancharrier/cql-green-queries-actions
 version: 1.0.3
 extractor: actions
 groups: yaml

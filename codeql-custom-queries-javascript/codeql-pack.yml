@@ -1,6 +1,6 @@
 ---
 library: false
-name: titouancharrier/javascript-queries
+name: titouancharrier/cql-green-queries-javascript
 version: 1.0.0
 extractor : javascript
 groups : javascript
