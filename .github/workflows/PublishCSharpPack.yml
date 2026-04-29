@@ -2,13 +2,7 @@ name: "C# - Publish CodeQL Pack"
 
 on:
   workflow_dispatch:
-  push:
-    branches: [ "main" ]
-    paths:
-      - 'codeql-custom-queries-csharp/**'
-      # On ignore les changements de version faits par le bot pour éviter les boucles
-      - '!codeql-custom-queries-csharp/qlpack.yml'
-      - '!codeql-custom-queries-csharp/codeql-pack.yml'
+  
 jobs:
   publish:
     name: Publish C# Pack

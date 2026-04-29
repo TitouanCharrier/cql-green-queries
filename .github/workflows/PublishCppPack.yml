@@ -2,13 +2,6 @@ name: "C++ - Publish CodeQL Pack"
 
 on:
   workflow_dispatch:
-  push:
-    branches: [ "main" ]
-    paths:
-      - 'codeql-custom-queries-cpp/**'
-      # On ignore les changements de version faits par le bot pour éviter les boucles
-      - '!codeql-custom-queries-cpp/qlpack.yml'
-      - '!codeql-custom-queries-cpp/codeql-pack.yml'
 
 jobs:
   publish:

@@ -2,13 +2,7 @@ name: "Actions - Publish CodeQL Pack"
 
 on:
   workflow_dispatch:
-  push:
-    branches: [ "main" ]
-    paths:
-      - 'codeql-custom-queries-actions/**'
-      # On ignore les changements de version faits par le bot pour éviter les boucles
-      - '!codeql-custom-queries-actions/qlpack.yml'
-      - '!codeql-custom-queries-actions/codeql-pack.yml'
+  
 jobs:
   publish:
     name: Publish Actions Pack

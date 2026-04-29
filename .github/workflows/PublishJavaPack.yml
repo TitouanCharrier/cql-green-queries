@@ -2,50 +2,15 @@ name: "Java - Publish CodeQL Pack"
 
 on:
   workflow_dispatch:
-  workflow_run:
-    workflows: ["Sync Queries to Main"]
-    types:
-      - completed
-    branches:
-      - main
 
 jobs:
-  detect-changes:
-    runs-on: ubuntu-latest
-    if: |
-      github.event_name == 'workflow_dispatch' ||
-      (github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success')
-    outputs:
-      has_changes: ${{ steps.check.outputs.has_changes }}
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-
-      - name: Check if relevant files changed
-        id: check
-        run: |
-          if [ "${{ github.event_name }}" == "workflow_dispatch" ]; then
-            echo "has_changes=true" >> $GITHUB_OUTPUT
-            exit 0
-          fi
-
-          BEFORE=$(git rev-parse HEAD~1 2>/dev/null || git rev-list --max-parents=0 HEAD)
-          AFTER=$(git rev-parse HEAD)
-          CHANGED=$(git diff --name-only $BEFORE $AFTER \
-            | grep '^codeql-custom-queries-java/' \
-            | grep -v 'qlpack.yml' \
-            | grep -v 'codeql-pack.yml' || true)
-
-          [ -n "$CHANGED" ] && echo "has_changes=true" >> $GITHUB_OUTPUT \
-                            || echo "has_changes=false" >> $GITHUB_OUTPUT
-
   publish:
     name: Publish Java Pack
-    needs: detect-changes
-    if: needs.detect-changes.outputs.has_changes == 'true'
     runs-on: ubuntu-latest
-
+    if: |
+      github.event_name == 'workflow_dispatch' || 
+      (github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success')
+    
     permissions:
       packages: write
       contents: write
@@ -69,16 +34,19 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
+          # On se déplace dans le dossier Java
           cd codeql-custom-queries-java
           
           echo "Installation des dépendances..."
           codeql pack install
           
+          # 1. Détection du fichier de pack
           PACK_FILE=$(ls qlpack.yml 2>/dev/null || ls codeql-pack.yml 2>/dev/null)
           if [ -z "$PACK_FILE" ]; then echo "Pack file not found"; exit 1; fi
           
+          # 2. Gestion de la version via GHCR
           OWNER="green-code-initiative"
-          PACKAGE_NAME="java-queries"
+          PACKAGE_NAME="java-queries" # Vérifie que ce nom correspond à ton package Java
           
           RESPONSE=$(curl -s -H "Authorization: Bearer $GITHUB_TOKEN" \
             "https://api.github.com/users/$OWNER/packages/container/$PACKAGE_NAME/versions")
@@ -106,6 +74,7 @@ jobs:
           git config --local user.email "github-actions[bot]@users.noreply.github.com"
           git config --local user.name "github-actions[bot]"
           
+          # On ajoute spécifiquement le dossier Java
           git add codeql-custom-queries-java/
           
           if ! git diff --staged --quiet; then
