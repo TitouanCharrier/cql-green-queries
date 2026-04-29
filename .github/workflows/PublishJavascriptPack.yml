@@ -2,11 +2,13 @@ name: "JS - Publish CodeQL Pack"
 
 on:
   workflow_dispatch:
-  # Déclenchement automatique après la synchronisation
-  workflow_run:
-    workflows: ["Sync Queries to Main"]
-    types:
-      - completed
+  push:
+    branches: [ "main" ]
+    paths:
+      - 'codeql-custom-queries-javascript/**'
+      # On ignore les changements de version faits par le bot pour éviter les boucles
+      - '!codeql-custom-queries-javascript/qlpack.yml'
+      - '!codeql-custom-queries-javascript/codeql-pack.yml'
 
 jobs:
   publish:

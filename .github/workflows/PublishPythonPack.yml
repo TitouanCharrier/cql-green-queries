@@ -2,11 +2,13 @@ name: "Python - Publish CodeQL Pack"
 
 on:
   workflow_dispatch:
-  # Déclenchement automatique à la fin de la synchronisation
-  workflow_run:
-    workflows: ["Sync Queries to Main"]
-    types:
-      - completed
+  push:
+    branches: [ "main" ]
+    paths:
+      - 'codeql-custom-queries-python/**'
+      # On ignore les changements de version faits par le bot pour éviter les boucles
+      - '!codeql-custom-queries-python/qlpack.yml'
+      - '!codeql-custom-queries-python/codeql-pack.yml'
 
 jobs:
   publish:

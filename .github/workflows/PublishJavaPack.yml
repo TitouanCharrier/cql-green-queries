@@ -2,10 +2,13 @@ name: "Java - Publish CodeQL Pack"
 
 on:
   workflow_dispatch:
-  workflow_run:
-    workflows: ["Sync Queries to Main"]
-    types:
-      - completed
+  push:
+    branches: [ "main" ]
+    paths:
+      - 'codeql-custom-queries-java/**'
+      # On ignore les changements de version faits par le bot pour éviter les boucles
+      - '!codeql-custom-queries-java/qlpack.yml'
+      - '!codeql-custom-queries-java/codeql-pack.yml'
 
 jobs:
   publish:
