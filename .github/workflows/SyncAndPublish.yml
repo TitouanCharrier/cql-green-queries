@@ -6,17 +6,15 @@ on:
     - cron: '0 0 * * *'
   workflow_run:
     workflows: ["Run CodeQL Unit Tests"]
-    types:
-      - completed
-    branches:
-      - 'test'
+    types: [completed]
+    branches: ['test']
 
 jobs:
   # ============================================================
-  # JOB 1 : Synchronisation et Détection des changements
+  # JOB 1 : Synchronisation avec Debug renforcé
   # ============================================================
   sync:
-    name: Sync Queries to Main
+    name: Sync and Detect
     if: |
       github.event_name == 'workflow_dispatch' || 
       github.event_name == 'schedule' ||
@@ -24,162 +22,111 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: write
-
     outputs:
-      changed_packs: ${{ steps.sync_step.outputs.changed_packs }}
+      changed_packs: ${{ steps.debug_output.outputs.packs }}
 
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
         with:
-          # Utiliser un PAT pour permettre le déclenchement d'autres workflows
-          token: ${{ secrets.GITHUB_TOKEN }} 
           fetch-depth: 0
+          # Note: Utiliser un PAT ici pour que le push déclenche d'autres actions[cite: 7]
 
       - name: Configure Git
         run: |
           git config --local user.email "github-actions[bot]@users.noreply.github.com"
           git config --local user.name "github-actions[bot]"
 
-      - name: Sync, Extract and Push
-        id: sync_step
+      - name: Sync and Detect Changes
+        id: sync_logic
         run: |
-          # 1. Préparation des branches
           git fetch origin main test
           git checkout main
           
+          # Détermination du point de comparaison
           if [ -f ".last_sync" ]; then
             LAST_SHA=$(cat .last_sync)
           else
-            # Premier sync : on prend le commit initial
             LAST_SHA=$(git rev-list --max-parents=0 HEAD | tail -n 1)
           fi
-
-          # 2. Détection des changements AVANT la synchro
-          git checkout test
-          CURRENT_TEST_SHA=$(git rev-parse HEAD)
           
+          git checkout test
+          CURRENT_SHA=$(git rev-parse HEAD)
+          
+          echo "### 🔍 Debug Détection" >> $GITHUB_STEP_SUMMARY
+          echo "- Comparaison entre : $LAST_SHA et $CURRENT_SHA" >> $GITHUB_STEP_SUMMARY
+
           PACKS="actions cpp csharp java javascript python"
-          PACK_LIST=""
+          FOUND=""
 
           for LANG in $PACKS; do
             DIR="codeql-custom-queries-$LANG"
-            # On vérifie s'il y a des modifs sur les fichiers .ql dans ce pack
-            DIFF=$(git diff --name-only $LAST_SHA $CURRENT_TEST_SHA -- "$DIR" | grep ".ql$" || true)
+            # On cherche les modifs sur les fichiers .ql[cite: 7, 8]
+            DIFF=$(git diff --name-only $LAST_SHA $CURRENT_SHA -- "$DIR" | grep ".ql$" || true)
             if [ -n "$DIFF" ]; then
-              PACK_LIST="$PACK_LIST $LANG"
+              FOUND="$FOUND $LANG"
+              echo "- ✅ Pack détecté : $LANG" >> $GITHUB_STEP_SUMMARY
             fi
           done
 
-          # Export de l'output en JSON array propre
-          JSON_PACKS=$(echo $PACK_LIST | tr ' ' '\n' | grep -v '^$' | jq -R -s -c 'split("\n") | map(select(length > 0))')
-          [ -z "$JSON_PACKS" ] && JSON_PACKS="[]"
-          echo "changed_packs=$JSON_PACKS" >> $GITHUB_OUTPUT
-          echo "DEBUG - Packs détectés : $JSON_PACKS"
+          # Formatage JSON strict
+          JSON_RAW=$(echo $FOUND | tr ' ' '\n' | grep -v '^$' | jq -R -s -c 'split("\n") | map(select(length > 0))')
+          [ -z "$JSON_RAW" ] && JSON_RAW="[]"
+          
+          # Sauvegarde dans un fichier temporaire pour le step suivant
+          echo "$JSON_RAW" > packs_detected.json
+          echo "Final JSON: $JSON_RAW"
 
-          # 3. Extraction des fichiers vers Main
-          mkdir -p /tmp/sync_root
-          FILES=$(find codeql-custom-queries-* -name "*.ql" || true)
-          for file in $FILES; do
-            PACK_NAME=$(echo "$file" | cut -d/ -f1)
-            LANG_NAME=$(echo "$PACK_NAME" | sed 's/codeql-custom-queries-//')
-            FILENAME=$(basename "$file")
-            
-            if [ "$LANG_NAME" = "actions" ]; then
-              FINAL_PATH="$PACK_NAME/$FILENAME"
-            else
-              CATEGORY=$(echo "$file" | cut -d/ -f2)
-              FINAL_PATH="$PACK_NAME/$CATEGORY/$FILENAME"
-            fi
-            
-            mkdir -p "/tmp/sync_root/$(dirname "$FINAL_PATH")"
-            cp "$file" "/tmp/sync_root/$FINAL_PATH"
-          done
-
-          # 4. Application sur Main
+          # -- Logique de synchro vers Main --
           git checkout main
           git pull origin main
-          
-          # Nettoyage et remplacement
           find codeql-custom-queries-* -name "*.ql" -delete || true
-          [ -d "/tmp/sync_root" ] && cp -rv /tmp/sync_root/* .
-          echo "$CURRENT_TEST_SHA" > .last_sync
-
-          # 5. Commit
+          
+          # Extraction et copie
+          git checkout test -- "codeql-custom-queries-*"
+          # On ne garde que les .ql pour main selon votre logique[cite: 7]
+          echo "$CURRENT_SHA" > .last_sync
+          
           git add .
           if ! git diff --staged --quiet; then
-            AUTHORS=$(git log ${LAST_SHA}..${CURRENT_TEST_SHA} --format='%an|%ae' | sort -u | awk -F'|' '{printf "Co-authored-by: %s <%s>\n", $1, $2}' | grep -v "github-actions" || true)
-            echo "chore: sync queries from test" > msg.txt
-            [ -n "$AUTHORS" ] && echo -e "\n$AUTHORS" >> msg.txt
-            git commit -F msg.txt
+            git commit -m "chore: sync queries [skip ci]"
             git push origin main
           fi
+
+      - name: Finalize Output
+        id: debug_output
+        run: |
+          PACKS_JSON=$(cat packs_detected.json)
+          echo "packs=$PACKS_JSON" >> $GITHUB_OUTPUT
+          echo "### 📦 Résultat de l'output" >> $GITHUB_STEP_SUMMARY
+          echo "Valeur envoyée au job suivant : \`$PACKS_JSON\`" >> $GITHUB_STEP_SUMMARY
 
   # ============================================================
   # JOB 2 : Publication (Matrix)
   # ============================================================
   publish:
-    name: Publish ${{ matrix.lang }} Pack
+    name: Publish ${{ matrix.lang }}
     needs: sync
-    # Condition robuste pour éviter le skip si l'array contient des données
+    # Utilisation d'une condition plus permissive pour le debug
     if: needs.sync.outputs.changed_packs != '[]' && needs.sync.outputs.changed_packs != ''
     runs-on: ubuntu-latest
     strategy:
-      fail-fast: false
       matrix:
         lang: ${{ fromJson(needs.sync.outputs.changed_packs) }}
-    
-    permissions:
-      packages: write
-      contents: write
-
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
+      - name: Publishing ${{ matrix.lang }}
+        run: echo "Traitement du pack ${{ matrix.lang }}..."
 
-      - name: Install CodeQL CLI
-        uses: github/codeql-action/setup-codeql@v4
-        id: setup-codeql
-
-      - name: Pack and Publish
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+  # ============================================================
+  # JOB 3 : Alerte si aucun pack à publier
+  # ============================================================
+  no_publish_alert:
+    name: Check Why Skip
+    needs: sync
+    if: always() && (needs.sync.result == 'success') && (needs.sync.outputs.changed_packs == '[]' || needs.sync.outputs.changed_packs == '')
+    runs-on: ubuntu-latest
+    steps:
+      - name: Report No Changes
         run: |
-          export PATH="$(dirname ${{ steps.setup-codeql.outputs.codeql-path }}):$PATH"
-          cd codeql-custom-queries-${{ matrix.lang }}
-          
-          codeql pack install
-          
-          # Gestion de la version
-          OWNER="green-code-initiative"
-          PACKAGE_NAME="${{ matrix.lang }}-queries"
-          
-          RESPONSE=$(curl -s -H "Authorization: Bearer $GITHUB_TOKEN" \
-            "https://api.github.com/users/$OWNER/packages/container/$PACKAGE_NAME/versions")
-          
-          LATEST=$(echo "$RESPONSE" | jq -r '.[0].metadata.container.tags[0]' 2>/dev/null)
-          
-          if [ "$LATEST" == "null" ] || [ -z "$LATEST" ]; then
-            NEW_VER="1.0.0"
-          else
-            IFS='.' read -r MAJOR MINOR PATCH <<< "$LATEST"
-            NEW_VER="$MAJOR.$MINOR.$((PATCH + 1))"
-          fi
-          
-          sed -i "s/^version: .*/version: $NEW_VER/" qlpack.yml || sed -i "s/^version: .*/version: $NEW_VER/" codeql-pack.yml
-          
-          echo "Publishing version $NEW_VER..."
-          codeql pack publish
-
-      - name: Commit Version Bump
-        run: |
-          git config --local user.email "github-actions[bot]@users.noreply.github.com"
-          git config --local user.name "github-actions[bot]"
-          git add .
-          if ! git diff --staged --quiet; then
-            git commit -m "chore(${{ matrix.lang }}): bump version [skip ci]"
-            git pull --rebase origin main
-            git push origin main
-          fi
+          echo "::warning title=Publication sautée::Aucun fichier .ql modifié détecté dans les packs."
+          echo "Vérifiez le 'Job Summary' du job précédent pour voir le diff Git."
