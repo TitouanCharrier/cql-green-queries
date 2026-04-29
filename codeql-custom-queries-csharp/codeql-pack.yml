@@ -1,6 +1,6 @@
 ---
 library: false
-name: green-code-initiative/csharp-queries
+name: titouancharrier/csharp-queries
 version: 1.0.1
 extractor: csharp
 groups: csharp

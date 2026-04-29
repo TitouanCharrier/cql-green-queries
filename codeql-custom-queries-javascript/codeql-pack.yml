@@ -1,6 +1,6 @@
 ---
 library: false
-name: green-code-initiative/javascript-queries
+name: titouancharrier/javascript-queries
 version: 1.0.0
 extractor : javascript
 groups : javascript

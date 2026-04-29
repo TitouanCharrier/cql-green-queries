@@ -1,6 +1,6 @@
 ---
 library: false
-name: green-code-initiative/actions-queries
+name: titouancharrier/actions-queries
 version: 1.0.3
 extractor: actions
 groups: yaml

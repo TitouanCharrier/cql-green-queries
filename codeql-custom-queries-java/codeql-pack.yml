@@ -1,6 +1,6 @@
 ---
 library: false
-name: green-code-initiative/java-queries
+name: titouancharrier/java-queries
 version: 1.0.0
 extractor: java
 groups: java

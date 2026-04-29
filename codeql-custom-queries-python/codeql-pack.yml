@@ -1,6 +1,6 @@
 ---
 library: false
-name: green-code-initiative/python-queries
+name: titouancharrier/python-queries
 version: 1.0.1
 extractor: python
 groups: python

@@ -1,6 +1,6 @@
 ---
 library: false
-name: green-code-initiative/cpp-queries
+name: titouancharrier/cpp-queries
 version: 1.0.0
 extractor: cpp
 groups: cpp
