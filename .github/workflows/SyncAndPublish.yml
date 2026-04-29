@@ -147,7 +147,7 @@ jobs:
           
           codeql pack install
           
-          OWNER="green-code-initiative"
+          OWNER="TitouanCharrier"
           PACKAGE_NAME="${{ matrix.lang }}-queries"
           
           RESPONSE=$(curl -s -H "Authorization: Bearer $GITHUB_TOKEN" \
