@@ -25,7 +25,6 @@ jobs:
     permissions:
       contents: write
     outputs:
-      # On exporte la liste des packs pour le job suivant
       changed_packs: ${{ steps.detect.outputs.packs }}
 
     steps:
@@ -55,7 +54,6 @@ jobs:
           git checkout test
           CURRENT_TEST_SHA=$(git rev-parse HEAD)
 
-          # Extraction des fichiers .ql[cite: 7]
           mkdir -p /tmp/sync_root
           FILES=$(find codeql-custom-queries-* -name "*.ql" || true)
           for file in $FILES; do
@@ -72,14 +70,12 @@ jobs:
             cp "$file" "/tmp/sync_root/$FINAL_PATH"
           done
 
-          # Application sur Main[cite: 7]
           git checkout main
           git pull origin main
           find codeql-custom-queries-* -name "*.ql" -delete || true
           [ -d "/tmp/sync_root" ] && cp -rv /tmp/sync_root/* .
           echo "$CURRENT_TEST_SHA" > .last_sync
 
-          # Commit et Push[cite: 7]
           git add .
           if ! git diff --staged --quiet; then
             git commit -m "chore: sync and flatten queries [skip ci]"
@@ -101,7 +97,6 @@ jobs:
 
           for LANG in $PACKS; do
             DIR="codeql-custom-queries-$LANG"
-            # Détection basée sur ta logique de diff[cite: 7]
             CHANGED=$(git diff --name-only $BEFORE $AFTER | grep "^$DIR/" | grep ".ql$" || true)
             
             if [ -n "$CHANGED" ]; then
@@ -110,7 +105,6 @@ jobs:
             fi
           done
 
-          # Conversion en JSON pour la matrice
           JSON_ARRAY=$(echo $FOUND_LIST | tr ' ' '\n' | grep -v '^$' | jq -R -s -c 'split("\n") | map(select(length > 0))')
           [ -z "$JSON_ARRAY" ] && JSON_ARRAY="[]"
           
@@ -123,7 +117,6 @@ jobs:
   publish:
     name: Publish ${{ matrix.lang }}
     needs: sync
-    # Le job ne se lance que si la matrice n'est pas vide
     if: needs.sync.outputs.changed_packs != '[]' && needs.sync.outputs.changed_packs != ''
     runs-on: ubuntu-latest
     strategy:
@@ -152,9 +145,8 @@ jobs:
           export PATH="$(dirname ${{ steps.setup-codeql.outputs.codeql-path }}):$PATH"
           cd codeql-custom-queries-${{ matrix.lang }}
           
-          codeql pack install[cite: 1, 2, 4]
+          codeql pack install
           
-          # Gestion de la version via GHCR[cite: 1, 2, 4, 6]
           OWNER="green-code-initiative"
           PACKAGE_NAME="${{ matrix.lang }}-queries"
           
@@ -171,12 +163,10 @@ jobs:
           fi
           
           echo "Nouvelle version pour ${{ matrix.lang }} : $NEW_VER"
-          # Mise à jour du fichier de pack[cite: 1, 2, 4, 6]
           PACK_FILE=$(ls qlpack.yml 2>/dev/null || ls codeql-pack.yml 2>/dev/null)
           sed -i "s/^version: .*/version: $NEW_VER/" "$PACK_FILE"
           
-          codeql pack publish[cite: 1, 2, 4, 6]
-          echo "version=$NEW_VER" >> $GITHUB_OUTPUT
+          codeql pack publish
 
       - name: Commit Version Update
         run: |
