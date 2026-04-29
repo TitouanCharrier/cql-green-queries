@@ -150,7 +150,7 @@ jobs:
       
           # 1. Installation des dépendances (Mode non-strict obligatoire ici)
           echo "Installation des dépendances..."
-          codeql pack install --no-strict-mode
+          codeql pack install
       
           # 2. Logique de versioning (Récupération GHCR)
           OWNER="green-code-initiative"
