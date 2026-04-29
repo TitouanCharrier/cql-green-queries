@@ -145,9 +145,15 @@ jobs:
           export PATH="$(dirname ${{ steps.setup-codeql.outputs.codeql-path }}):$PATH"
           cd codeql-custom-queries-${{ matrix.lang }}
           
-          codeql pack install
-          
-          OWNER="TitouanCharrier"
+          echo "### 🛠 Debug : Vérification du contenu" >> $GITHUB_STEP_SUMMARY
+          ls -R >> $GITHUB_STEP_SUMMARY
+
+          # 1. Installation des dépendances (Mode non-strict obligatoire ici)
+          echo "Installation des dépendances..."
+          codeql pack install --no-strict-mode[cite: 1, 2, 4]
+
+          # 2. Logique de versioning (Récupération GHCR)
+          OWNER="green-code-initiative"
           PACKAGE_NAME="${{ matrix.lang }}-queries"
           
           RESPONSE=$(curl -s -H "Authorization: Bearer $GITHUB_TOKEN" \
@@ -162,11 +168,17 @@ jobs:
             NEW_VER="$MAJOR.$MINOR.$((PATCH + 1))"
           fi
           
-          echo "Nouvelle version pour ${{ matrix.lang }} : $NEW_VER"
+          echo "- Version calculée : $NEW_VER" >> $GITHUB_STEP_SUMMARY
+
+          # 3. Mise à jour du fichier de configuration
           PACK_FILE=$(ls qlpack.yml 2>/dev/null || ls codeql-pack.yml 2>/dev/null)
           sed -i "s/^version: .*/version: $NEW_VER/" "$PACK_FILE"
+
+          # 4. Publication finale
+          echo "Publication du pack..."
+          codeql pack publish --no-strict-mode[cite: 1, 2, 4, 6]
           
-          codeql pack publish
+          echo "✅ Pack ${{ matrix.lang }} publié avec succès en version $NEW_VER" >> $GITHUB_STEP_SUMMARY
 
       - name: Commit Version Update
         run: |
