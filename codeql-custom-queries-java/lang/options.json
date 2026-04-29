@@ -1,7 +1,0 @@
-{
-  "extractor_options": {
-    "java": {
-      "file_extensions": [".java", ".kt"]
-    }
-  }
-}

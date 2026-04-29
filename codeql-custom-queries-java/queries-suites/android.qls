@@ -1,6 +1,0 @@
-- description: "Requètes relatives a android + base du language"
-- qlpack: titouancharrier/cql-green-queries-java
-- include:
-    tags:
-      - lang
-      - android
