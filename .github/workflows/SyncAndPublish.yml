@@ -173,12 +173,12 @@ jobs:
           # 3. Mise à jour du fichier de configuration
           PACK_FILE=$(ls qlpack.yml 2>/dev/null || ls codeql-pack.yml 2>/dev/null)
           sed -i "s/^version: .*/version: $NEW_VER/" "$PACK_FILE"
-
-    # 4. Publication finale
-    echo "Publication du pack..."
-    codeql pack publish --no-strict-mode
-
-    echo "✅ Pack ${{ matrix.lang }} publié avec succès en version $NEW_VER" >> $GITHUB_STEP_SUMMARY
+      
+          # 4. Publication finale
+          echo "Publication du pack..."
+          codeql pack publish --no-strict-mode
+      
+          echo "✅ Pack ${{ matrix.lang }} publié avec succès en version $NEW_VER" >> $GITHUB_STEP_SUMMARY
 
       - name: Commit Version Update
         run: |
