@@ -1,5 +1,0 @@
-name: titouancharrier/cql-green-queries-cpp
-version: 1.0.7
-groups: cpp
-dependencies:
-  codeql/cpp-all: "*"

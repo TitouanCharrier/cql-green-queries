@@ -1,3 +1,0 @@
-| avoid_csv_format.py:8:10:8:46 | Attribute() | Avoid read_csv(): CSV format is slow and energy-intensive. Use Parquet (pd.read_parquet() / df.to_parquet()) for better compression, faster I/O, and lower energy consumption. |
-| avoid_csv_format.py:17:5:17:63 | Attribute() | Avoid to_csv(): CSV format is slow and energy-intensive. Use Parquet (pd.read_parquet() / df.to_parquet()) for better compression, faster I/O, and lower energy consumption. |
-| avoid_csv_format.py:21:15:21:50 | StringLiteral | Avoid CSV files. Use Parquet format instead for better compression, faster I/O, and lower energy consumption. |

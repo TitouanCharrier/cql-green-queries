@@ -1,8 +1,8 @@
 ---
 library: false
-warnOnImplicitThis: false
-name: titouancharrier/cql-green-queries-python
+name: green-code-initiative/python-queries
+version: 1.0.1
 extractor: python
-version: 1.0.14
+groups: python
 dependencies:
   codeql/python-all: "*"
