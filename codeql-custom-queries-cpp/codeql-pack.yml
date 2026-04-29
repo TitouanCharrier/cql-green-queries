@@ -1,7 +1,7 @@
 ---
 library: false
 name: titouancharrier/cql-green-queries-cpp
-version: 1.0.0
+version: 1.1.0
 extractor: cpp
 groups: cpp
 dependencies:

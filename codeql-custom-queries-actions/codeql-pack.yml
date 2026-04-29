@@ -1,7 +1,7 @@
 ---
 library: false
 name: titouancharrier/cql-green-queries-actions
-version: 1.0.3
+version: 1.1.3
 extractor: actions
 groups: yaml
 dependencies:
