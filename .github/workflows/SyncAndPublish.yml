@@ -176,7 +176,7 @@ jobs:
       
           # 4. Publication finale
           echo "Publication du pack..."
-          codeql pack publish --no-strict-mode
+          codeql pack publish
       
           echo "✅ Pack ${{ matrix.lang }} publié avec succès en version $NEW_VER" >> $GITHUB_STEP_SUMMARY
 
