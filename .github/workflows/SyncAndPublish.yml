@@ -55,11 +55,13 @@ jobs:
           CURRENT_TEST_SHA=$(git rev-parse HEAD)
 
           mkdir -p /tmp/sync_root
+          # On cherche tous les fichiers .ql dans les dossiers de requêtes
           FILES=$(find codeql-custom-queries-* -name "*.ql" || true)
           for file in $FILES; do
             PACK_NAME=$(echo "$file" | cut -d/ -f1)
             LANG=$(echo "$PACK_NAME" | sed 's/codeql-custom-queries-//')
             FILENAME=$(basename "$file")
+            
             if [ "$LANG" = "actions" ]; then
               FINAL_PATH="codeql-custom-queries-$LANG/$FILENAME"
             else
@@ -72,6 +74,7 @@ jobs:
 
           git checkout main
           git pull origin main
+          # On nettoie les anciennes requêtes pour refléter exactement l'état de 'test'
           find codeql-custom-queries-* -name "*.ql" -delete || true
           [ -d "/tmp/sync_root" ] && cp -rv /tmp/sync_root/* .
           echo "$CURRENT_TEST_SHA" > .last_sync
@@ -89,6 +92,7 @@ jobs:
         id: detect
         run: |
           echo "### 🔍 Détection des Packs" >> $GITHUB_STEP_SUMMARY
+          # On compare avec le commit juste avant la synchro (HEAD~1)
           BEFORE=$(git rev-parse HEAD~1 2>/dev/null || git rev-list --max-parents=0 HEAD)
           AFTER=$(git rev-parse HEAD)
           
@@ -97,14 +101,16 @@ jobs:
 
           for LANG in $PACKS; do
             DIR="codeql-custom-queries-$LANG"
-            CHANGED=$(git diff --name-only $BEFORE $AFTER | grep "^$DIR/" | grep ".ql$" || true)
+            # On vérifie si des fichiers .ql ou le fichier de pack ont changé dans ce dossier
+            CHANGED=$(git diff --name-only $BEFORE $AFTER | grep "^$DIR/" || true)
             
             if [ -n "$CHANGED" ]; then
               FOUND_LIST="$FOUND_LIST $LANG"
-              echo "- Pack détecté : **$LANG**" >> $GITHUB_STEP_SUMMARY
+              echo "- Pack détecté pour publication : **$LANG**" >> $GITHUB_STEP_SUMMARY
             fi
           done
 
+          # Conversion de la liste d'espace en tableau JSON pour la matrice
           JSON_ARRAY=$(echo $FOUND_LIST | tr ' ' '\n' | grep -v '^$' | jq -R -s -c 'split("\n") | map(select(length > 0))')
           [ -z "$JSON_ARRAY" ] && JSON_ARRAY="[]"
           
@@ -139,20 +145,17 @@ jobs:
         id: setup-codeql
 
       - name: Pack and Publish
+        id: publish_step
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           export PATH="$(dirname ${{ steps.setup-codeql.outputs.codeql-path }}):$PATH"
           cd codeql-custom-queries-${{ matrix.lang }}
       
-          echo "### 🛠 Debug : Vérification du contenu" >> $GITHUB_STEP_SUMMARY
-          ls -R >> $GITHUB_STEP_SUMMARY
-      
-          # 1. Installation des dépendances (Mode non-strict obligatoire ici)
-          echo "Installation des dépendances..."
+          # 1. Installation des dépendances
           codeql pack install
       
-          # 2. Logique de versioning (Récupération GHCR)
+          # 2. Logique de versioning via API GitHub (GHCR)
           OWNER="green-code-initiative"
           PACKAGE_NAME="${{ matrix.lang }}-queries"
       
@@ -168,25 +171,28 @@ jobs:
             NEW_VER="$MAJOR.$MINOR.$((PATCH + 1))"
           fi
       
-          echo "- Version calculée : $NEW_VER" >> $GITHUB_STEP_SUMMARY
+          echo "NEW_VER=$NEW_VER" >> $GITHUB_ENV
+          echo "new_version=$NEW_VER" >> $GITHUB_OUTPUT
       
-          # 3. Mise à jour du fichier de configuration
+          # 3. Mise à jour du fichier qlpack.yml
           PACK_FILE=$(ls qlpack.yml 2>/dev/null || ls codeql-pack.yml 2>/dev/null)
           sed -i "s/^version: .*/version: $NEW_VER/" "$PACK_FILE"
       
-          # 4. Publication finale
-          echo "Publication du pack..."
+          # 4. Publication
           codeql pack publish
-      
-          echo "✅ Pack ${{ matrix.lang }} publié avec succès en version $NEW_VER" >> $GITHUB_STEP_SUMMARY
+          echo "✅ Pack ${{ matrix.lang }} publié en version $NEW_VER" >> $GITHUB_STEP_SUMMARY
 
       - name: Commit Version Update
         run: |
           git config --local user.email "github-actions[bot]@users.noreply.github.com"
           git config --local user.name "github-actions[bot]"
+          
+          # On ajoute spécifiquement le dossier du pack traité par la matrice
           git add codeql-custom-queries-${{ matrix.lang }}/
+          
           if ! git diff --staged --quiet; then
-            git commit -m "chore(${{ matrix.lang }}): bump version [skip ci]"
+            git commit -m "chore(${{ matrix.lang }}): bump version to ${{ env.NEW_VER }} [skip ci]"
+            # Rebase pour éviter les conflits entre les jobs de la matrice qui poussent sur main
             git pull --rebase origin main
             git push origin main
           fi
