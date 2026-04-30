@@ -9,7 +9,6 @@
  * @tags ai
  */
 
- 
 import python
 
 predicate isInsideNoGrad(Call call) {
