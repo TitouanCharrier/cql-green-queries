@@ -8,7 +8,6 @@
  * @tags lang
  */
 
- 
 import csharp
 
 from Struct s
