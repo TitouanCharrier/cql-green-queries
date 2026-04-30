@@ -155,30 +155,33 @@ jobs:
           # 1. Installation des dépendances
           codeql pack install
       
-          # 2. Logique de versioning via API GitHub (GHCR)
-          OWNER="green-code-initiative"
-          PACKAGE_NAME="${{ matrix.lang }}-queries"
-      
-          RESPONSE=$(curl -s -H "Authorization: Bearer $GITHUB_TOKEN" \
-            "https://api.github.com/users/$OWNER/packages/container/$PACKAGE_NAME/versions")
-      
-          LATEST=$(echo "$RESPONSE" | jq -r '.[0].metadata.container.tags[0]' 2>/dev/null)
-      
-          if [ "$LATEST" == "null" ] || [ -z "$LATEST" ]; then
+          # 2. Identification du fichier de pack
+          PACK_FILE=$(ls qlpack.yml 2>/dev/null || ls codeql-pack.yml 2>/dev/null)
+          if [ -z "$PACK_FILE" ]; then
+            echo "❌ Erreur : Aucun fichier qlpack.yml ou codeql-pack.yml trouvé."
+            exit 1
+          fi
+
+          # 3. Récupération de la version actuelle dans le fichier (ex: version: 1.0.5)
+          CURRENT_VER=$(grep "^version:" "$PACK_FILE" | awk '{print $2}' | tr -d '"' | tr -d "'")
+          
+          if [ -z "$CURRENT_VER" ]; then
+            echo "⚠️ Version non trouvée dans $PACK_FILE, initialisation à 1.0.0"
             NEW_VER="1.0.0"
           else
-            IFS='.' read -r MAJOR MINOR PATCH <<< "$LATEST"
+            # 4. Incrémentation de la version x.x.(x+1)
+            IFS='.' read -r MAJOR MINOR PATCH <<< "$CURRENT_VER"
             NEW_VER="$MAJOR.$MINOR.$((PATCH + 1))"
           fi
       
+          echo "Ancienne version : $CURRENT_VER"
+          echo "Nouvelle version  : $NEW_VER"
           echo "NEW_VER=$NEW_VER" >> $GITHUB_ENV
-          echo "new_version=$NEW_VER" >> $GITHUB_OUTPUT
       
-          # 3. Mise à jour du fichier qlpack.yml
-          PACK_FILE=$(ls qlpack.yml 2>/dev/null || ls codeql-pack.yml 2>/dev/null)
+          # 5. Mise à jour du fichier local
           sed -i "s/^version: .*/version: $NEW_VER/" "$PACK_FILE"
       
-          # 4. Publication
+          # 6. Publication
           codeql pack publish
           echo "✅ Pack ${{ matrix.lang }} publié en version $NEW_VER" >> $GITHUB_STEP_SUMMARY
 
@@ -187,12 +190,11 @@ jobs:
           git config --local user.email "github-actions[bot]@users.noreply.github.com"
           git config --local user.name "github-actions[bot]"
           
-          # On ajoute spécifiquement le dossier du pack traité par la matrice
           git add codeql-custom-queries-${{ matrix.lang }}/
           
           if ! git diff --staged --quiet; then
             git commit -m "chore(${{ matrix.lang }}): bump version to ${{ env.NEW_VER }} [skip ci]"
-            # Rebase pour éviter les conflits entre les jobs de la matrice qui poussent sur main
+            # Rebase pour éviter les conflits si plusieurs jobs de matrice poussent en même temps
             git pull --rebase origin main
             git push origin main
           fi
