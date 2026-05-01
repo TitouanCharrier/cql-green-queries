@@ -7,6 +7,7 @@
  * @id csharp/lang/prefer-class-over-struct
  * @tags lang
  */
+
 import csharp
 
 from Struct s
