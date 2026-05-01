@@ -11,7 +11,6 @@
 
 import javascript
 
-
 from MethodCallExpr call, ObjectExpr options, Property prop
 where
   (
