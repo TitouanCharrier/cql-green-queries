@@ -20,6 +20,7 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: write
+      actions: write # Nécessaire pour trigger d'autres workflows
 
     steps:
       - name: Checkout Repository
@@ -33,6 +34,7 @@ jobs:
           git config --local user.name "github-actions[bot]"
 
       - name: Sync, Extract and Push
+        id: sync_step
         run: |
           # 1. Identifier le point de départ
           git fetch origin main test
@@ -57,10 +59,8 @@ jobs:
               FILENAME=$(basename "$file")
               
               if [ "$LANG" = "actions" ]; then
-                # Cas particulier Actions : direct dans le dossier du pack
                 FINAL_PATH="codeql-custom-queries-$LANG/$FILENAME"
               else
-                # Cas général : langage/categorie/nom.ql
                 CATEGORY=$(echo "$file" | cut -d/ -f2)
                 FINAL_PATH="codeql-custom-queries-$LANG/$CATEGORY/$FILENAME"
               fi
@@ -80,7 +80,6 @@ jobs:
           git checkout main
           git pull origin main
 
-          # Nettoyage sélectif des fichiers .ql (on garde les .yml et .lock)
           find codeql-custom-queries-* -name "*.ql" -delete || true
           
           if [ -d "/tmp/sync_root" ] && [ "$(ls -A /tmp/sync_root)" ]; then
@@ -92,41 +91,52 @@ jobs:
           # 5. Commit et Push
           git add .
           if git diff --staged --quiet; then
+            echo "sync_status=no_changes" >> $GITHUB_OUTPUT
             echo "Rien à synchroniser."
           else
             echo "chore: sync and flatten queries" > commit_msg.txt
             [ -n "$AUTHORS" ] && echo -e "\n$AUTHORS" >> commit_msg.txt
             git commit -F commit_msg.txt
             git push origin main
+            echo "sync_status=pushed" >> $GITHUB_OUTPUT
           fi
+
       - name: Trigger Publish Workflows if needed
+        if: steps.sync_step.outputs.sync_status == 'pushed'
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          BEFORE=$(git rev-parse HEAD~1 2>/dev/null || git rev-list --max-parents=0 HEAD)
-          AFTER=$(git rev-parse HEAD)
+          # Récupère la liste des fichiers modifiés dans le dernier commit
+          MODIFIED_FILES=$(git diff-tree --no-commit-id --name-only -r HEAD)
+          
+          echo "Fichiers modifiés détectés :"
+          echo "$MODIFIED_FILES"
 
+          # Mapping des dossiers vers les fichiers YAML de workflow
           declare -A PACK_WORKFLOWS=(
-            ["codeql-custom-queries-java"]="PublishJavaPack.yml"
-            ["codeql-custom-queries-python"]="PublishPythonPack.yml"
-            ["codeql-custom-queries-cpp"]="PublishCppPack.yml"
-            ["codeql-custom-queries-csharp"]="PublishCSharpPack.yml"
-            ["codeql-custom-queries-javascript"]="PublishJavascriptPack.yml"
-            ["codeql-custom-queries-actions"]="PublishActionsPack.yml"
+            ["codeql-custom-queries-java"]="Java-PublishCodeQLPack.yml"
+            ["codeql-custom-queries-python"]="Python-PublishCodeQLPack.yml"
+            ["codeql-custom-queries-cpp"]="C++-PublishCodeQLPack.yml"
+            ["codeql-custom-queries-csharp"]="C#-PublishCodeQLPack.yml"
+            ["codeql-custom-queries-javascript"]="JS-PublishCodeQLPack.yml"
+            ["codeql-custom-queries-actions"]="Actions-PublishCodeQLPack.yml"
           )
 
           for PACK in "${!PACK_WORKFLOWS[@]}"; do
-            CHANGED=$(git diff --name-only $BEFORE $AFTER \
-              | grep "^$PACK/" \
-              | grep -v 'qlpack.yml' \
-              | grep -v 'codeql-pack.yml' || true)
+            # Vérifie si un fichier modifié commence par le nom du pack
+            # On ignore les fichiers de config du pack pour ne trigger que sur les requêtes (.ql)
+            MATCH=$(echo "$MODIFIED_FILES" | grep "^$PACK/" | grep "\.ql$" || true)
 
-            if [ -n "$CHANGED" ]; then
-              echo "Changements détectés dans $PACK, déclenchement de ${PACK_WORKFLOWS[$PACK]}..."
+            if [ -n "$MATCH" ]; then
+              WORKFLOW_FILE="${PACK_WORKFLOWS[$PACK]}"
+              echo ">>> Changements détectés dans $PACK. Déclenchement de $WORKFLOW_FILE..."
+              
               curl -X POST \
                 -H "Authorization: Bearer $GITHUB_TOKEN" \
                 -H "Accept: application/vnd.github+json" \
-                https://api.github.com/repos/${{ github.repository }}/actions/workflows/${PACK_WORKFLOWS[$PACK]}/dispatches \
+                https://api.github.com/repos/${{ github.repository }}/actions/workflows/$WORKFLOW_FILE/dispatches \
                 -d '{"ref":"main"}'
+            else
+              echo "Pas de changements significatifs pour $PACK."
             fi
           done
