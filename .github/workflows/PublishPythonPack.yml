@@ -2,44 +2,18 @@ name: "Python - Publish CodeQL Pack"
 
 on:
   workflow_dispatch:
-  # Tu peux garder le workflow_run si la synchro doit déclencher la vérification
   workflow_run:
-    workflows: ["Nom_du_Workflow_Synchro"]
+    workflows: ["Sync Queries to Main"]
     types:
       - completed
 
 jobs:
-  check_changes:
-    name: Check for Changes
-    runs-on: ubuntu-latest
-    outputs:
-      changed: ${{ steps.diff.outputs.changed }}
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 2 # Nécessaire pour comparer avec le commit précédent
-
-      - name: Detect changes in Python folder
-        id: diff
-        run: |
-          # On compare le commit actuel (HEAD) au parent (HEAD^)
-          if git diff --quiet HEAD^ HEAD -- codeql-custom-queries-python/; then
-            echo "No changes detected."
-            echo "changed=false" >> $GITHUB_OUTPUT
-          else
-            echo "Changes detected in codeql-custom-queries-python/."
-            echo "changed=true" >> $GITHUB_OUTPUT
-          fi
-
   publish:
     name: Publish Python Pack
-    needs: check_changes
-    # Le job ne s'exécute que si changements détectés OU lancement manuel
-    if: |
-      always() && 
-      (needs.check_changes.outputs.changed == 'true' || github.event_name == 'workflow_dispatch')
     runs-on: ubuntu-latest
+    if: |
+      github.event_name == 'workflow_dispatch' || 
+      (github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success')
     
     permissions:
       packages: write
@@ -52,14 +26,33 @@ jobs:
         with:
           fetch-depth: 0
 
+      - name: Check for changes in Python directory
+        id: filter
+        run: |
+          if [ "${{ github.event_name }}" == "workflow_dispatch" ]; then
+            echo "changed=true" >> $GITHUB_OUTPUT
+          else
+            # Vérifie les changements dans le dossier Python
+            if git diff --quiet HEAD^ HEAD -- codeql-custom-queries-python/; then
+              echo "Aucun changement détecté dans codeql-custom-queries-python."
+              echo "changed=false" >> $GITHUB_OUTPUT
+            else
+              echo "Changements détectés dans le pack Python."
+              echo "changed=true" >> $GITHUB_OUTPUT
+            fi
+          fi
+
       - name: Install CodeQL CLI
+        if: steps.filter.outputs.changed == 'true'
         id: install-codeql
         uses: github/codeql-action/setup-codeql@v4
 
       - name: Setup CodeQL Path
+        if: steps.filter.outputs.changed == 'true'
         run: echo "$(dirname ${{ steps.install-codeql.outputs.codeql-path }})" >> $GITHUB_PATH
 
       - name: Validate and Publish
+        if: steps.filter.outputs.changed == 'true'
         id: publish_step
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -72,8 +65,8 @@ jobs:
           PACK_FILE=$(ls qlpack.yml 2>/dev/null || ls codeql-pack.yml 2>/dev/null)
           if [ -z "$PACK_FILE" ]; then echo "Pack file not found"; exit 1; fi
           
-          OWNER="green-code-initiative"
-          PACKAGE_NAME="python-queries"
+          OWNER="titouancharrier"
+          PACKAGE_NAME="cql-green-queries-python"
           
           RESPONSE=$(curl -s -H "Authorization: Bearer $GITHUB_TOKEN" \
             "https://api.github.com/users/$OWNER/packages/container/$PACKAGE_NAME/versions")
@@ -83,6 +76,7 @@ jobs:
           if [ "$LATEST_VERSION" == "null" ] || [ -z "$LATEST_VERSION" ]; then
             NEW_VERSION="1.0.0"
           else
+            echo "Dernière version Python trouvée : $LATEST_VERSION"
             IFS='.' read -r MAJOR MINOR PATCH <<< "$LATEST_VERSION"
             NEW_VERSION="$MAJOR.$MINOR.$((PATCH + 1))"
           fi
@@ -90,13 +84,15 @@ jobs:
           echo "Nouvelle version Python : $NEW_VERSION"
           sed -i "s/^version: .*/version: $NEW_VERSION/" "$PACK_FILE"
           
+          echo "Publication du pack Python..."
           codeql pack publish
           echo "new_version=$NEW_VERSION" >> $GITHUB_OUTPUT
 
       - name: Commit version update
+        if: steps.filter.outputs.changed == 'true'
         id: commit_step
         run: |
-          git config --local user.email "github-actions[bot]@users.noreply.noreply.github.com"
+          git config --local user.email "github-actions[bot]@users.noreply.github.com"
           git config --local user.name "github-actions[bot]"
           
           git add codeql-custom-queries-python/
@@ -109,7 +105,7 @@ jobs:
           fi
 
       - name: Mark status via API
-        if: steps.commit_step.outputs.new_sha != ''
+        if: steps.filter.outputs.changed == 'true' && steps.commit_step.outputs.new_sha != ''
         run: |
           curl -L -X POST \
             -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
