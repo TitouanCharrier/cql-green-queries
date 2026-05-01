@@ -20,6 +20,7 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: write
+      actions: write
 
     steps:
       - name: Checkout Repository
@@ -33,8 +34,8 @@ jobs:
           git config --local user.name "github-actions[bot]"
 
       - name: Sync, Extract and Push
+        id: sync_step
         run: |
-          # 1. Identifier le point de départ
           git fetch origin main test
           git checkout main
           
@@ -44,11 +45,11 @@ jobs:
             LAST_SHA=$(git rev-list --max-parents=0 HEAD | tail -n 1)
           fi
 
-          # 2. Préparation de la structure
           git checkout test
           mkdir -p /tmp/sync_root
           CURRENT_TEST_SHA=$(git rev-parse HEAD)
 
+          # Extraction des fichiers .ql
           FILES=$(find codeql-custom-queries-* -name "*.ql" || true)
           for file in $FILES; do
             if [ -f "$file" ]; then
@@ -57,10 +58,8 @@ jobs:
               FILENAME=$(basename "$file")
               
               if [ "$LANG" = "actions" ]; then
-                # Cas particulier Actions : direct dans le dossier du pack
                 FINAL_PATH="codeql-custom-queries-$LANG/$FILENAME"
               else
-                # Cas général : langage/categorie/nom.ql
                 CATEGORY=$(echo "$file" | cut -d/ -f2)
                 FINAL_PATH="codeql-custom-queries-$LANG/$CATEGORY/$FILENAME"
               fi
@@ -70,17 +69,11 @@ jobs:
             fi
           done
 
-          # 3. Récupération des auteurs
-          AUTHORS=$(git log ${LAST_SHA}..HEAD --format='%an|%ae' | \
-                    sort -u | \
-                    awk -F'|' '{printf "Co-authored-by: %s <%s>\n", $1, $2}' | \
-                    grep -v "github-actions" || true)
+          # Récupération des auteurs pour le commit
+          AUTHORS=$(git log ${LAST_SHA}..HEAD --format='%an|%ae' | sort -u | awk -F'|' '{printf "Co-authored-by: %s <%s>\n", $1, $2}' | grep -v "github-actions" || true)
 
-          # 4. Application sur Main
           git checkout main
           git pull origin main
-
-          # Nettoyage sélectif des fichiers .ql (on garde les .yml et .lock)
           find codeql-custom-queries-* -name "*.ql" -delete || true
           
           if [ -d "/tmp/sync_root" ] && [ "$(ls -A /tmp/sync_root)" ]; then
@@ -89,33 +82,45 @@ jobs:
 
           echo "$CURRENT_TEST_SHA" > .last_sync
 
-          # 5. Commit et Push
           git add .
           if git diff --staged --quiet; then
-            echo "Rien à synchroniser."
+            echo "sync_status=no_changes" >> $GITHUB_OUTPUT
           else
             echo "chore: sync and flatten queries" > commit_msg.txt
             [ -n "$AUTHORS" ] && echo -e "\n$AUTHORS" >> commit_msg.txt
             git commit -F commit_msg.txt
             git push origin main
+            echo "sync_status=pushed" >> $GITHUB_OUTPUT
           fi
-      - name: Trigger Publish Workflows if needed
+
+      - name: Trigger Publish Workflows
+        if: steps.sync_step.outputs.sync_status == 'pushed'
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
+          # Identification des fichiers modifiés dans le commit de sync
+          MODIFIED_FILES=$(git diff-tree --no-commit-id --name-only -r HEAD)
+          
+          # Map : Dossier source -> Nom du fichier YAML de publication
           declare -A PACK_WORKFLOWS=(
-            ["codeql-custom-queries-java"]="PublishJavaPack.yml"
-            ["codeql-custom-queries-python"]="PublishPythonPack.yml"
-            ["codeql-custom-queries-cpp"]="PublishCppPack.yml"
-            ["codeql-custom-queries-csharp"]="PublishCSharpPack.yml"
-            ["codeql-custom-queries-javascript"]="PublishJavascriptPack.yml"
-            ["codeql-custom-queries-actions"]="PublishActionsPack.yml"
+            ["codeql-custom-queries-java"]="Java-PublishCodeQLPack.yml"
+            ["codeql-custom-queries-python"]="Python-PublishCodeQLPack.yml"
+            ["codeql-custom-queries-cpp"]="C++-PublishCodeQLPack.yml"
+            ["codeql-custom-queries-csharp"]="C#-PublishCodeQLPack.yml"
+            ["codeql-custom-queries-javascript"]="JS-PublishCodeQLPack.yml"
+            ["codeql-custom-queries-actions"]="Actions-PublishCodeQLPack.yml"
           )
 
           for PACK in "${!PACK_WORKFLOWS[@]}"; do
-            curl -X POST \
-              -H "Authorization: Bearer $GITHUB_TOKEN" \
-              -H "Accept: application/vnd.github+json" \
-              https://api.github.com/repos/${{ github.repository }}/actions/workflows/${PACK_WORKFLOWS[$PACK]}/dispatches \
-              -d '{"ref":"main"}'
+            # Déclenchement si le dossier du pack contient des fichiers modifiés
+            if echo "$MODIFIED_FILES" | grep -q "^$PACK/"; then
+              WORKFLOW_FILE="${PACK_WORKFLOWS[$PACK]}"
+              echo ">>> Changements détectés dans $PACK. Envoi du signal à $WORKFLOW_FILE"
+              
+              curl -X POST \
+                -H "Authorization: Bearer $GITHUB_TOKEN" \
+                -H "Accept: application/vnd.github+json" \
+                https://api.github.com/repos/${{ github.repository }}/actions/workflows/$WORKFLOW_FILE/dispatches \
+                -d '{"ref":"main"}'
+            fi
           done
