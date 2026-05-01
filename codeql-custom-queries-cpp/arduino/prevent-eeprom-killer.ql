@@ -10,7 +10,6 @@
  * @tags arduino
  * @tags cpp
  */
-
 import cpp
 
 class EepromWriteCall extends FunctionCall {
