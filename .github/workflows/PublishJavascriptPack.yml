@@ -2,10 +2,6 @@ name: "JS - Publish CodeQL Pack"
 
 on:
   workflow_dispatch:
-  workflow_run:
-    workflows: ["Sync Queries to Main"]
-    types:
-      - completed
 
 jobs:
   publish:

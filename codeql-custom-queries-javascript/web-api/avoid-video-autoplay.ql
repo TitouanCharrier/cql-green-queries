@@ -12,7 +12,6 @@
 
 import javascript
 
-
 from JsxElement media, JsxAttribute attr
 where
   (media.getName() = "video" or media.getName() = "audio") and
